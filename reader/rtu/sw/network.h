@@ -5,7 +5,7 @@
 #include "uart.h"
 #include "crc.h"
 /****************************************************************************************/
-namespace CNETWORK {
+namespace NETWORK {
   const u08 NUM_PAYLOAD_BYTES = 128;
   const u08 HEADER = 0x5A;
   const u08 BROADCAST_NODE_ID = 0x0;
@@ -186,6 +186,6 @@ namespace CNETWORK {
   };
 }
 /****************************************************************************************/
-using namespace CNETWORK;
+using namespace NETWORK;
 /****************************************************************************************/
 #endif

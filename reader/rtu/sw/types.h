@@ -160,4 +160,11 @@ typedef   signed long	int64_t;
 // constants
 #define PI    3.14159265359
 
+/// Macro to extract the high 8 bits of a 16-bit value (Most Significant Byte)
+#define U16_HI(u16Data) ((u08)((u16Data>>8)&0xff))
+
+/// Macro to extract the low 8 bits of a 16-bit value (Least Significant Byte)
+#define U16_LO(u16Data) ((u08)(u16Data&0xff))
+
+
 #endif

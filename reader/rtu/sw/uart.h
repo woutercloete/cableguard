@@ -8,10 +8,12 @@
 
 #include "fifo.h"
 #include "pin.h"
+#include "types.h"
 
 typedef enum {
   eSize5 = 0, eSize6 = 1, eSize7 = 2, eSize8 = 3, eSize9 = 7,
 } eCharSize;
+
 
 /****************************************************************************************/
 #ifndef UDR0
@@ -133,14 +135,17 @@ class Cuart {
     Tfifo<u08> txFIFO;
     u08 txBusy;
     u32 baudRate;
-    Cuart(u08 uartNr);
-    Cuart(u08 uartNr, u16 bufSize, Cpin* pinRTS, Cpin* pinCTS);
+    Cuart(u08 uartNr, u16 _rxBufSize = 0, u16 _txBufSize = 0, Cpin* _pinRTS = 0,
+          Cpin* _pinCTS = 0);
     u16 send(c08* buffer, u16 nBytes);
     u16 receive(u08* buffer, u16 nBytes);
     u16 peek(c08* buffer);
     u16 space(void);
     u16 rxnum(void);
-    bool start(void);
+    bool start(void){
+      // enable RxD/TxD and interrupts
+        (*(volatile u08*) (UCSRXB_ADR)) = BV(RXCIE0) | BV(TXCIE0) | BV(RXEN0) | BV(TXEN0);
+    }
     void clearRx(void);
     void setAsync(void);
     void setBaudRate(u32 baudrate);
@@ -161,6 +166,5 @@ class Cuart {
     void sendStr(c08* str);
     void uprintf(const char *__fmt, ...);
 };
-
 #endif
 

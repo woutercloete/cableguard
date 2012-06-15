@@ -77,7 +77,7 @@ namespace I2C {
   class Ci2c {
     private:
       volatile sReg* reg;
-      static eState mode;
+    static eState mode;
       bool txStop;
       bool error;
       u08 cntrl;
