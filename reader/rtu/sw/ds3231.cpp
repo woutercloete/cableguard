@@ -14,7 +14,7 @@ u32 mktime(u16 year, u08 mon, u08 day, u08 hour, u08 min);
  FUNCTION:DS3231 driver
  PURPOSE:
  ---------------------------------------------------------------------------*/
-Crtc::Crtc(CI2C* _i2c, u08 _id) {
+Crtc::Crtc(Ci2c* _i2c, u08 _id) {
   rtc_id = _id;
   i2c = _i2c;
 }
@@ -27,9 +27,9 @@ bool Crtc::getDate(u16* year, u08* mon, u08* day, u08 *wday, u08* hour, u08* min
   u08 buf[0x12];
   // send address
   buf[0] = 0x00;
-  i2c->masterSend(rtc_id, 1, buf);
+  i2c->tx(1, buf);
   // get the data
-  i2c->masterReceive(rtc_id, 7, buf);
+  i2c->rx(7, buf);
 
   //datetime.sec = BCD_TO_BIN (buf[0] & 0x7F);
   *min = BCD_TO_BIN (buf[1] & 0x7F);
@@ -41,13 +41,14 @@ bool Crtc::getDate(u16* year, u08* mon, u08* day, u08 *wday, u08* hour, u08* min
   return true;
 }
 
-bool Crtc::getDate(u16* year, u08* mon, u08* day, u08 *wday, u08* hour, u08* min, u08* sec) {
+bool Crtc::getDate(u16* year, u08* mon, u08* day, u08 *wday, u08* hour, u08* min,
+                   u08* sec) {
   u08 buf[0x12];
   // send address
   buf[0] = 0x00;
-  i2c->masterSend(rtc_id, 1, buf);
+  i2c->tx(1, buf);
   // get the data
-  i2c->masterReceive(rtc_id, 7, buf);
+  i2c->rx(7, buf);
 
   *sec = BCD_TO_BIN (buf[0] & 0x7F);
   *min = BCD_TO_BIN (buf[1] & 0x7F);
@@ -70,12 +71,12 @@ bool Crtc::setDate(u16 year, u08 mon, u08 day, u08 wday, u08 hour, u08 min) {
 
   buf[1] = (BIN_TO_BCD (0)); //sec
   buf[2] = (BIN_TO_BCD (min)) & 0x7F;
-  buf[3] = (BIN_TO_BCD (hour)) & 0x3F;// 00-->23
+  buf[3] = (BIN_TO_BCD (hour)) & 0x3F; // 00-->23
   buf[4] = wday;
   buf[5] = (BIN_TO_BCD (day)) & 0x3F; //1--31/30
   buf[6] = BIN_TO_BCD (mon) & 0x1F; //1--12
   buf[7] = BIN_TO_BCD (year-2000); //00 -- 99
-  i2c->masterSend(rtc_id, 8, buf);
+  i2c->tx(8, buf);
   return true;
 }
 
@@ -89,7 +90,7 @@ char* Crtc::getTimestamp(void) {
   u08 minute;
   u08 second;
 
-  getDate(&year,&month,&date,&day,&hour,&minute,&second);
+  getDate(&year, &month, &date, &day, &hour, &minute, &second);
   sprintf(aux, "%d/%02d/%02d %02d:%02d:%02d", year, month, date, hour, minute, second);
   return aux;
 }

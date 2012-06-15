@@ -49,7 +49,7 @@ Cpin::Cpin(ePort portNumber, u08 pinNumber, ePinDir dir, bool pullup, bool activ
   }
   this->pin = pinNumber;
   this->activeLow = activeLow;
-  if (dir == ePinIn) {
+  if (dir == IN) {
     // Set the pin as an input by clearing the bit in the direction register.
     (*(volatile u08*) (DDR_ADR)) &= ~(1 << pinNumber);
   } else {

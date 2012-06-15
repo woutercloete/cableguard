@@ -1,13 +1,13 @@
 #include <avr/interrupt.h>
 #include "timer.h"
-#include "avrlibdefs.h"
+#include "types.h"
 
 static CTimer* timer[3];
 
 CTimer::CTimer(u08 devNum, u08 prescale, eTimerMode mode) :
 	Ccounter(devNum, prescale) {
 	//Enable the overflow interrupt.
-	sbi(_MMIO_BYTE(this->timskn), TOIE1);
+	setbit(_MMIO_BYTE(this->timskn), TOIE1);
 	timer[devNum] = this;
 	this->mode = mode;
 	_MMIO_BYTE(this->ocrna) = 255;
@@ -18,21 +18,21 @@ CTimer::CTimer(u08 devNum, u08 prescale, eTimerMode mode) :
 // In this mode the timer will overflow at the count value.
 void CTimer::setModeCTC(u08 count) {
 	_MMIO_BYTE(this->ocrna) = count;
-	cbi(_MMIO_BYTE(this->tccrna), WGM10);
-	sbi(_MMIO_BYTE(this->tccrna), WGM11);
-	cbi(_MMIO_BYTE(this->tccrnb), WGM12);
+	clearbit(_MMIO_BYTE(this->tccrna), WGM10);
+	setbit(_MMIO_BYTE(this->tccrna), WGM11);
+	clearbit(_MMIO_BYTE(this->tccrnb), WGM12);
 }
 
 void CTimer::disableInterrupt(eTimerIntr intr) {
 	switch (intr) {
 	case OVERFLOW:
-		cbi(_MMIO_BYTE(this->timskn), TOIE1);
+		clearbit(_MMIO_BYTE(this->timskn), TOIE1);
 		break;
 	case COMPAREA:
-		cbi(_MMIO_BYTE(this->timskn), OCIE1A);
+		clearbit(_MMIO_BYTE(this->timskn), OCIE1A);
 		break;
 	case COMPAREB:
-		cbi(_MMIO_BYTE(this->timskn), OCIE1B);
+		clearbit(_MMIO_BYTE(this->timskn), OCIE1B);
 		break;
 	}
 }
@@ -40,13 +40,13 @@ void CTimer::disableInterrupt(eTimerIntr intr) {
 void CTimer::enableInterrupt(eTimerIntr intr) {
 	switch (intr) {
 	case OVERFLOW:
-		sbi(_MMIO_BYTE(this->timskn), TOIE1);
+		setbit(_MMIO_BYTE(this->timskn), TOIE1);
 		break;
 	case COMPAREA:
-		sbi(_MMIO_BYTE(this->timskn), OCIE1A);
+		setbit(_MMIO_BYTE(this->timskn), OCIE1A);
 		break;
 	case COMPAREB:
-		sbi(_MMIO_BYTE(this->timskn), OCIE1B);
+		setbit(_MMIO_BYTE(this->timskn), OCIE1B);
 		break;
 	}
 }

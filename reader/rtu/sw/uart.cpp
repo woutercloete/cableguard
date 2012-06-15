@@ -6,16 +6,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 /****************************************************************************************/
-#include "types.h"
-#include "avrlibdefs.h"
 #include "uart.h"
-#include "iopins.h"
-#include "common.h"
 /****************************************************************************************/
 Cuart* pUart[NUM_UARTS];
 /****************************************************************************************/
-Cuart::Cuart(u08 uartNr, u16 _rxBufSize = 0, _txBufSize = 0, Cpin* _pinRTS = 0,
-             Cpin* _pinCTS = 0) {
+Cuart::Cuart(u08 uartNr, u16 _rxBufSize, u16 _txBufSize, Cpin* _pinRTS, Cpin* _pinCTS) {
   if (uartNr < NUM_UARTS) {
     this->baseAdr = 0xC0 + (8 * uartNr);
     if (uartNr == 3)
@@ -23,7 +18,7 @@ Cuart::Cuart(u08 uartNr, u16 _rxBufSize = 0, _txBufSize = 0, Cpin* _pinRTS = 0,
     this->pinRTS = pinRTS;
     this->pinCTS = pinCTS;
     rxFIFO.setBufSize(_rxBufSize);
-    txFIFO.setBufSize(_txBFufSize);
+    txFIFO.setBufSize(_txBufSize);
     // enable RxD/TxD and interrupts
     (*(volatile u08*) (UCSRXB_ADR)) = BV(RXCIE0) | BV(TXCIE0) | BV(RXEN0) | BV(TXEN0);
     pUart[uartNr] = this;
@@ -34,22 +29,14 @@ Cuart::Cuart(u08 uartNr, u16 _rxBufSize = 0, _txBufSize = 0, Cpin* _pinRTS = 0,
   }
 }
 /****************************************************************************************/
-bool Cuart::start(void) {
-  // enable RxD/TxD and interrupts
-  if (healthy) {
-    (*(volatile u08*) (UCSRXB_ADR)) = BV(RXCIE0) | BV(TXCIE0) | BV(RXEN0) | BV(TXEN0);
-    return true;
-  }
-  return false;
-}
-/****************************************************************************************/
 void Cuart::setPins(Cpin* pinRTS, Cpin* pinCTS) {
   this->pinRTS = pinRTS;
   this->pinCTS = pinCTS;
 }
 /****************************************************************************************/
 void Cuart::setBufSize(u16 bufSize) {
-  healthy = (rxFIFO.setBufSize(bufSize) && txFIFO.setBufSize(bufSize));
+  rxFIFO.setBufSize(bufSize);
+  txFIFO.setBufSize(bufSize);
 }
 /****************************************************************************************/
 void Cuart::clearRx(void) {
@@ -71,16 +58,12 @@ u16 Cuart::receive(u08* buffer, u16 nBytes) {
   return rxFIFO.remove(buffer, nBytes);
 }
 /****************************************************************************************/
-u16 Cuart::peek(c08* buffer) {
-  return rxFIFO.peek(buffer);
-}
-/****************************************************************************************/
 u16 Cuart::space(void) {
   return txFIFO.space();
 }
 /****************************************************************************************/
 u16 Cuart::rxnum(void) {
-  return rxFIFO.received();
+  return rxFIFO.used();
 }
 /****************************************************************************************/
 void Cuart::setBaudRate(u32 baudRate) {
@@ -100,36 +83,36 @@ void Cuart::setBaudRate(u32 baudRate) {
 }
 /****************************************************************************************/
 void Cuart::setAsync(void) {
-  cbi(UCSRXC, UMSEL00);
-  cbi(UCSRXC, UMSEL01);
+  clearbit(UCSRXC, UMSEL00);
+  clearbit(UCSRXC, UMSEL01);
 }
 /****************************************************************************************/
 void Cuart::setSync(void) {
-  sbi(UCSRXC, UMSEL00);
-  cbi(UCSRXC, UMSEL01);
+  setbit(UCSRXC, UMSEL00);
+  clearbit(UCSRXC, UMSEL01);
 }
 /****************************************************************************************/
 void Cuart::setParityOff(void) {
-  cbi(UCSRXC, UPM00);
-  cbi(UCSRXC, UPM01);
+  clearbit(UCSRXC, UPM00);
+  clearbit(UCSRXC, UPM01);
 }
 /****************************************************************************************/
 void Cuart::setParityOdd(void) {
-  sbi(UCSRXC, UPM00);
-  sbi(UCSRXC, UPM01);
+  setbit(UCSRXC, UPM00);
+  setbit(UCSRXC, UPM01);
 }
 /****************************************************************************************/
 void Cuart::setParityEven(void) {
-  cbi(UCSRXC, UPM00);
-  sbi(UCSRXC, UPM01);
+  clearbit(UCSRXC, UPM00);
+  setbit(UCSRXC, UPM01);
 }
 /****************************************************************************************/
 void Cuart::setStop1(void) {
-  cbi(UCSRXC, USBS0);
+  clearbit(UCSRXC, USBS0);
 }
 /****************************************************************************************/
 void Cuart::setStop2(void) {
-  sbi(UCSRXC, USBS0);
+  setbit(UCSRXC, USBS0);
 }
 /****************************************************************************************/
 void Cuart::setCharSize(eCharSize size) {
@@ -153,7 +136,8 @@ void Cuart::loadUDR(void) {
     if (cnt) {
       UDRX = dat;
     } else {
-      cbi(UCSRXB, UDRIE0); /* disable UDRE interrupt */
+      clearbit(UCSRXB, UDRIE0);
+      /* disable UDRE interrupt */
     }
   }
 }

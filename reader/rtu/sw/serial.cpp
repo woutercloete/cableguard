@@ -16,7 +16,7 @@ Cserial::Cserial(void) {
 
 }
 /****************************************************************************************/
-void Cserial::service(void){
+void Cserial::service(void) {
 
 }
 /****************************************************************************************/
@@ -25,7 +25,8 @@ void Cserial::clearRx(void) {
 }
 /****************************************************************************************/
 void Cserial::setBufSize(u16 bufSize) {
-  healthy = (rxFIFO.setBufSize(bufSize) && txFIFO.setBufSize(bufSize));
+  rxFIFO.setBufSize(bufSize);
+  txFIFO.setBufSize(bufSize);
 }
 /****************************************************************************************/
 u16 Cserial::receive(u08* buffer, u16 nBytes) {
@@ -47,10 +48,10 @@ u16 Cserial::rxnum(void) {
 void Cserial::uprintf(const char *__fmt, ...) {
   c08 str[255];
   va_list arg;
-  va_start(arg,__fmt);
+  va_start(arg, __fmt);
   vsprintf(str, __fmt, arg);
   va_end(arg);
-  send((u08*)str, strlen(str));
+  send((u08*) str, strlen(str));
 }
 /****************************************************************************************/
 void Cserial::sendStr_P(const prog_char str[]) {
@@ -59,11 +60,11 @@ void Cserial::sendStr_P(const prog_char str[]) {
     return;
   // print the string until the null-terminator
   while ((c = pgm_read_byte(str++)))
-    send((u08*)&c, 1);
+    send((u08*) &c, 1);
 }
 /****************************************************************************************/
 void Cserial::sendStr(c08* str) {
-  send((u08*)str, strlen(str));
+  send((u08*) str, strlen(str));
 }
 /****************************************************************************************/
 u16 Cserial::send_P(const prog_char buf[], u16 nBytes) {
