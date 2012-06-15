@@ -61,10 +61,10 @@ namespace PIN {
         (*(volatile u08*) (PORT_ADR)) |= (1 << pin);
       }
       void setDir(ePinDir _dir) {
-        if (dir == IN) {
-          (*(volatile u08*) (DDR_ADR)) &= ~(1 << pinNumber);
+        if (_dir == IN) {
+          (*(volatile u08*) (DDR_ADR)) &= ~(1 << pin);
         } else {
-          (*(volatile u08*) (DDR_ADR)) |= (1 << pinNumber);
+          (*(volatile u08*) (DDR_ADR)) |= (1 << pin);
         }
       }
   };
