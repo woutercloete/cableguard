@@ -1,0 +1,161 @@
+/****************************************************************************************/
+// The Ctag class contains an RFID tag
+//
+//   Created : 15 March 2012
+//     Author: Wouter Cloete
+//    Sponsor: Firmlogik (Pty) Ltd
+//    License: GNU General Public License Version 3
+//License URL: http://www.gnu.org/licenses/gpl.txt
+//  Copyright: 2012 Firmlogik (Pty) Ltd 2012.  All rights reserved.
+//        URL: http://www.firmlogik.co.za
+/****************************************************************************************/
+#ifndef TAG_H
+#define TAG_H
+/****************************************************************************************/
+#include "avrlibtypes.h"
+#include "fir.h"
+/****************************************************************************************/
+using namespace FIR;
+/****************************************************************************************/
+const u08 tickThreshold = 4;
+const u08 rssiMargin = 5;
+/****************************************************************************************/
+namespace TAG {
+  typedef struct {
+      u32 tagID;
+      u08 count;
+      u16 lifecnt;
+      u08 movement;
+  } sRfTag;
+  /****************************************************************************************/
+  typedef struct {
+      TAG::sRfTag rfTag;
+      u32 rssi;
+      u32 lqi;
+  } sServerTag02;
+  /****************************************************************************************/
+  typedef enum {
+    UNUSED = 0x1, NEW = 0x2, VISIBLE = 0x3, FADING = 0x4, INVISIBLE = 0x5
+  } eState;
+  /****************************************************************************************/
+  typedef enum {
+    IN_RANGE = 0x1, OUT_RANGE = 0x2, MOVEMENT_CHANGED = 0x3
+  } eEvent;
+/****************************************************************************************/
+}
+/****************************************************************************************/
+class Ctag {
+    friend class Ctagtable;
+  private:
+    TAG::sServerTag02 serverTag;
+    u08 cntTick;
+    TAG::eState state;
+    Cfir rssiFilter;
+    u08 rssiIn;
+    u08 movementNow;
+    u08 movementPrev;
+    u08 movementPrevPrev;
+    bool movingNow;
+    bool movingPrev;
+    bool startedMoving;
+    bool stoppedMoving;
+  public:
+    u16 rssiThreshold;
+    u08 rssiOut;
+    //bool movementChanged;
+    Ctag() {
+      state = TAG::UNUSED;
+      cntTick = 0;
+      rssiThreshold = 90;
+      serverTag.rfTag.tagID = 0;
+      serverTag.rfTag.count = 0;
+      serverTag.rfTag.lifecnt = 0;
+      serverTag.rfTag.movement = 0;
+      serverTag.rssi = 90;
+      rssiFilter.setSize(8);
+      rssiFilter.setWeight(0.125, true);
+      for (u08 cnt = 0; cnt < 7; cnt++) {
+        rssiFilter.setWeight(0.125, false);
+      }
+    }
+    void update(TAG::sServerTag02* _serverTag) {
+      movementPrevPrev = movementPrev;
+      movementPrev = movementNow;
+      movementNow = _serverTag->rfTag.movement;
+      movingNow = !(movementPrev == movementNow && movementPrev == movementPrevPrev);
+      if (movingNow != movingPrev) {
+        if (movingNow) {
+          startedMoving = true;
+          stoppedMoving = false;
+        } else {
+          startedMoving = false;
+          stoppedMoving = true;
+        }
+      } else {
+        startedMoving = false;
+        stoppedMoving = false;
+      }
+      movingPrev = movingNow;
+      cntTick = 0;
+      serverTag.rssi = rssiOut;
+      serverTag.rfTag.movement = movingNow;
+      serverTag.rfTag.count = _serverTag->rfTag.count;
+      serverTag.rfTag.lifecnt = _serverTag->rfTag.lifecnt;
+      serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
+      this->rssiIn = _serverTag->rssi;
+    }
+    void setRange(u16 _rssiThreshold) {
+      this->rssiThreshold = _rssiThreshold;
+    }
+    void setNew(TAG::sServerTag02* _serverTag, u16 _rssiThreshold) {
+      cntTick = 0;
+      this->rssiThreshold = _rssiThreshold;
+      serverTag.rssi = _serverTag->rssi;
+      serverTag.rfTag.movement = false;
+      serverTag.rfTag.count = _serverTag->rfTag.count;
+      serverTag.rfTag.lifecnt = _serverTag->rfTag.lifecnt;
+      serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
+      this->rssiIn = _serverTag->rssi;
+      this->rssiOut = _serverTag->rssi;
+      rssiFilter.fill(_serverTag->rssi);
+      state = TAG::NEW;
+    }
+    void setUnused() {
+      state = TAG::UNUSED;
+    }
+    bool isUsed() {
+      return state != TAG::UNUSED;
+    }
+    void clock() {
+      rssiFilter.clock(&rssiIn, &rssiOut);
+      cntTick++;
+    }
+    void setState(TAG::eState state) {
+      this->state = state;
+    }
+    u16 getLife() {
+      return serverTag.rfTag.lifecnt;
+    }
+    u32 getTagID() {
+      return serverTag.rfTag.tagID;
+    }
+    bool getState() {
+      return state;
+    }
+    void resetTick(void) {
+      cntTick = 0;
+    }
+    u32 getID(void) {
+      return serverTag.rfTag.tagID;
+    }
+    bool isOutRange() {
+      return ((rssiOut > rssiThreshold + rssiMargin) || (cntTick > tickThreshold));
+    }
+    bool isInRange() {
+      return (rssiOut < rssiThreshold - rssiMargin);
+    }
+    void service();
+};
+/****************************************************************************************/
+#endif
+

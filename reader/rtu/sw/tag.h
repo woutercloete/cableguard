@@ -1,0 +1,186 @@
+/*****************************************************************************/
+#ifndef TAG_H
+#define TAG_H
+/*****************************************************************************/
+/****************************************************************************************/
+#include "types.h"
+#include "fir.h"
+//
+//#include "global.h"
+//#include "sms.h"
+///*****************************************************************************/
+//#define RFID_TAG_LEN      11
+//#define MAX_NAME_LEN      32
+///*****************************************************************************/
+//typedef enum
+//{
+//  TAG_UNUSED,
+//  TAG_IN_RANGE,
+//  TAG_OUT_RANGE,
+//  TAG_DUR
+//} tagState;
+///*****************************************************************************/
+//typedef struct
+//{
+//  u32       RFID;
+//  tagState  State;
+//  bool      Logged;
+//  bool      Displayed;
+//  u08       SignalDuress;
+//  c08       Name[MAX_NAME_LEN];
+//} sTag;
+///*****************************************************************************/
+//u08 tagInit(sTag* this);
+//u08 tagSetID(sTag* this, u32 RFID);
+//u08 tagSetName(sTag* this, c08* Name);
+//u08 tagGetName(sTag* this, c08* Name);
+//u08 tagService(sTag* this);
+///*****************************************************************************/
+/****************************************************************************************/
+using namespace FIR;
+/****************************************************************************************/
+const u08 tickThreshold = 4;
+const u08 rssiMargin = 5;
+/****************************************************************************************/
+namespace TAG {
+  typedef struct {
+      u32 tagID;
+      u08 count;
+      u16 lifecnt;
+      u08 movement;
+  } sRfTag;
+  /****************************************************************************************/
+  typedef struct {
+      TAG::sRfTag rfTag;
+      u32 rssi;
+      u32 lqi;
+  } sTag;
+  /****************************************************************************************/
+  typedef enum {
+    UNUSED = 0x1, NEW = 0x2, VISIBLE = 0x3, FADING = 0x4, INVISIBLE = 0x5
+  } eState;
+  /****************************************************************************************/
+  typedef enum {
+    IN_RANGE = 0x1, OUT_RANGE = 0x2, MOVEMENT_CHANGED = 0x3
+  } eEvent;
+/****************************************************************************************/
+}
+/****************************************************************************************/
+class Ctag {
+    friend class Ctagtable;
+  private:
+    TAG::sTag serverTag;
+    u08 cntTick;
+    TAG::eState state;
+    Cfir rssiFilter;
+    u08 rssiIn;
+    u08 movementNow;
+    u08 movementPrev;
+    u08 movementPrevPrev;
+    bool movingNow;
+    bool movingPrev;
+    bool startedMoving;
+    bool stoppedMoving;
+  public:
+    u16 rssiThreshold;
+    u08 rssiOut;
+    //bool movementChanged;
+    Ctag() {
+      state = TAG::UNUSED;
+      cntTick = 0;
+      rssiThreshold = 90;
+      serverTag.rfTag.tagID = 0;
+      serverTag.rfTag.count = 0;
+      serverTag.rfTag.lifecnt = 0;
+      serverTag.rfTag.movement = 0;
+      serverTag.rssi = 90;
+      rssiFilter.setSize(8);
+      rssiFilter.setWeight(0.125, true);
+      for (u08 cnt = 0; cnt < 7; cnt++) {
+        rssiFilter.setWeight(0.125, false);
+      }
+    }
+    void update(TAG::sTag* _serverTag) {
+      movementPrevPrev = movementPrev;
+      movementPrev = movementNow;
+      movementNow = _serverTag->rfTag.movement;
+      movingNow = !(movementPrev == movementNow && movementPrev == movementPrevPrev);
+      if (movingNow != movingPrev) {
+        if (movingNow) {
+          startedMoving = true;
+          stoppedMoving = false;
+        } else {
+          startedMoving = false;
+          stoppedMoving = true;
+        }
+      } else {
+        startedMoving = false;
+        stoppedMoving = false;
+      }
+      movingPrev = movingNow;
+      cntTick = 0;
+      serverTag.rssi = rssiOut;
+      serverTag.rfTag.movement = movingNow;
+      serverTag.rfTag.count = _serverTag->rfTag.count;
+      serverTag.rfTag.lifecnt = _serverTag->rfTag.lifecnt;
+      serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
+      this->rssiIn = _serverTag->rssi;
+    }
+    void setRange(u16 _rssiThreshold) {
+      this->rssiThreshold = _rssiThreshold;
+    }
+    void setNew(TAG::sTag* _serverTag, u16 _rssiThreshold) {
+      cntTick = 0;
+      this->rssiThreshold = _rssiThreshold;
+      movementPrevPrev = _serverTag->rfTag.movement;
+      movementPrev = _serverTag->rfTag.movement;
+      movementNow = _serverTag->rfTag.movement;
+      serverTag.rssi = _serverTag->rssi;
+      serverTag.rfTag.movement = _serverTag->rfTag.movement;
+      serverTag.rfTag.count = _serverTag->rfTag.count;
+      serverTag.rfTag.lifecnt = _serverTag->rfTag.lifecnt;
+      serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
+      this->rssiIn = _serverTag->rssi;
+      this->rssiOut = _serverTag->rssi;
+      rssiFilter.fill(_serverTag->rssi);
+      state = TAG::NEW;
+    }
+    void setUnused() {
+      state = TAG::UNUSED;
+    }
+    bool isUsed() {
+      return state != TAG::UNUSED;
+    }
+    void clock() {
+      rssiFilter.clock(&rssiIn, &rssiOut);
+      cntTick++;
+    }
+    void setState(TAG::eState state) {
+      this->state = state;
+    }
+    u16 getLife() {
+      return serverTag.rfTag.lifecnt;
+    }
+    u32 getTagID() {
+      return serverTag.rfTag.tagID;
+    }
+    bool getState() {
+      return state;
+    }
+    void resetTick(void) {
+      cntTick = 0;
+    }
+    u32 getID(void) {
+      return serverTag.rfTag.tagID;
+    }
+    bool isOutRange() {
+      return ((rssiOut > rssiThreshold + rssiMargin) || (cntTick > tickThreshold));
+    }
+    bool isInRange() {
+      return (rssiOut < rssiThreshold - rssiMargin);
+    }
+    void service();
+};
+
+#endif
+
