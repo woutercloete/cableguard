@@ -46,6 +46,8 @@ void TimeTicker(void);
 int main(void) {
 
 
+
+
 //  InitIOPins();
 //  WDTCSR = 0x00; // Disable Watchdog for now
 //  Timer.attach(TimeTicker);
