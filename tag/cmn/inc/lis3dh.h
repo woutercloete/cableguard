@@ -116,11 +116,11 @@ namespace LIS3DH {
         i2c->setBitrate(400);
         i2c->setDevAdr(adr);
         // Config Data Rate
-        dat = 0x37;
-        write(offsetof(sReg,ctrl_reg1), 1, &dat);
+        //###dat = 0x37;
+        //###write(offsetof(sReg,ctrl_reg1), 1, &dat);
         setOperatingMode(false, true, true, true);
         setDataRate(ODR_25Hz);
-        // Enable the AOI interrupt
+        // Strap the High Pass filter to the interrupt
         dat = 0x01;
         write(offsetof(sReg,ctrl_reg2), 1, &dat);
         setHighPassFilter(HPC_11, HPM_NORMAL_RESET);
