@@ -142,7 +142,7 @@ class Cuart {
     u16 peek(c08* buffer);
     u16 space(void);
     u16 rxnum(void);
-    bool start(void){
+    void start(void){
       // enable RxD/TxD and interrupts
         (*(volatile u08*) (UCSRXB_ADR)) = BV(RXCIE0) | BV(TXCIE0) | BV(RXEN0) | BV(TXEN0);
     }
