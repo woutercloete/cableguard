@@ -20,7 +20,7 @@
 						<toolChain id="de.innot.avreclipse.toolchain.winavr.app.debug.1605698734" name="AVR-GCC Toolchain" superClass="de.innot.avreclipse.toolchain.winavr.app.debug">
 							<option id="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug.1716597824" name="Generate HEX file for Flash memory" superClass="de.innot.avreclipse.toolchain.options.toolchain.objcopy.flash.app.debug" value="true" valueType="boolean"/>
 							<targetPlatform id="de.innot.avreclipse.targetplatform.winavr.app.debug.2084365523" name="AVR Cross-Target" superClass="de.innot.avreclipse.targetplatform.winavr.app.debug"/>
-							<builder buildPath="${workspace_loc:/Xtag/Debug}" enableAutoBuild="true" enabledIncrementalBuild="true" id="de.innot.avreclipse.target.builder.winavr.app.debug.1846259373" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="AVR GNU Make Builder" superClass="de.innot.avreclipse.target.builder.winavr.app.debug"/>
+							<builder buildPath="${workspace_loc:/Xtag/Debug}" enableAutoBuild="false" enabledIncrementalBuild="true" id="de.innot.avreclipse.target.builder.winavr.app.debug.1846259373" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="AVR GNU Make Builder" stopOnErr="true" superClass="de.innot.avreclipse.target.builder.winavr.app.debug"/>
 							<tool id="de.innot.avreclipse.tool.assembler.winavr.app.debug.457162920" name="AVR Assembler" superClass="de.innot.avreclipse.tool.assembler.winavr.app.debug">
 								<option id="de.innot.avreclipse.assembler.option.debug.level.1935903572" name="Generate Debugging Info" superClass="de.innot.avreclipse.assembler.option.debug.level"/>
 								<inputType id="de.innot.avreclipse.tool.assembler.input.2116623028" superClass="de.innot.avreclipse.tool.assembler.input"/>

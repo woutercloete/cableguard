@@ -30,6 +30,31 @@ namespace LIS3DH {
       FIFO_DISABLE = 0x04
   } eFifoMode;
   //****************************************************************************************
+  typedef enum {
+    ODR_POWER_DOWN = 0x0,
+      ODR_1Hz = 0x1,
+      ODR_10Hz = 0x2,
+      ODR_25Hz = 0x3,
+      ODR_50Hz = 0x4,
+      ODR_100Hz = 0x5,
+      ODR_200Hz = 0x6,
+      ODR_400Hz = 0x7,
+      ODR_1500Hz = 0x8,
+      ODR_5000Hz = 0x9
+  } eDataRate;
+  //****************************************************************************************
+  typedef enum {
+    // ODR Setting    1Hz   10Hz  25Hz  50Hz  100Hz 200Hz 400Hz 1.6kHz  5kHz
+    HPC_00 = 0x0, //  0.02  0.2   0.5   1     2     4     8     32      100
+    HPC_01 = 0x1, //  0.008 0.08  0.2   0.5   1     2     4     16      50
+    HPC_10 = 0x2, //  0.004 0.04  0.1   0.2   0.5   1     2     8       25
+    HPC_11 = 0x3 //   0.002 0.02  0.05  0.1   0.2   0.5   1     4       12
+  } eHighPassCutoff;
+  //****************************************************************************************
+  typedef enum {
+    HPM_NORMAL_RESET = 0x0, HPM_REFERENCE = 0x1, HPM_NORMAL = 0x2, HPM_AUTORESET = 0x3
+  } eHighPassMode;
+  //****************************************************************************************
   typedef struct {
       u08 reserveda[7];
       u08 status_reg_aux;
@@ -79,25 +104,6 @@ namespace LIS3DH {
   } sAccel;
   //****************************************************************************************
   class Clis3dh {
-      Ci2c* i2c;
-      bool ok;
-      u08 int1SrcReg;
-      //****************************************************************************************
-      bool read(u08 adr, u08 len, u08* dat) {
-        if (len > 1)
-          adr |= 0x80;
-        i2c->tx(1, &adr);
-        return (i2c->rx(len, dat));
-      }
-      //****************************************************************************************
-      void write(u08 adr, u08 len, u08* dat) {
-        u08 buf[8];
-        if (len > 1)
-          adr |= 0x80;
-        buf[0] = adr;
-        memcpy(&buf[1], dat, len);
-        i2c->tx(len + 1, buf);
-      }
     public:
       //****************************************************************************************
       Clis3dh(Ci2c* i2c, ePinState A0) {
@@ -111,11 +117,13 @@ namespace LIS3DH {
         i2c->setDevAdr(adr);
         // Config Data Rate
         dat = 0x37;
-        //dat = 0x0f;
         write(offsetof(sReg,ctrl_reg1), 1, &dat);
+        setOperatingMode(false, true, true, true);
+        setDataRate(ODR_25Hz);
         // Enable the AOI interrupt
         dat = 0x01;
         write(offsetof(sReg,ctrl_reg2), 1, &dat);
+        setHighPassFilter(HPC_11, HPM_NORMAL_RESET);
         dat = 0x00;
         write(offsetof(sReg,ctrl_reg3), 1, &dat);
         dat = 0x00;
@@ -124,8 +132,9 @@ namespace LIS3DH {
         dat = 0xff;
         //write(offsetof(sReg,ctrl_reg6), 1, &dat);
         // Set the 6D interrupt threshold
-        dat = 2;
-        write(offsetof(sReg,int1_ths), 1, &dat);
+        //####dat = 2;
+        //####write(offsetof(sReg,int1_ths), 1, &dat);
+        setInt1Threshold(2);
         // Set the 6D interrupt duration
         dat = 1;
         write(offsetof(sReg,int1_duration), 1, &dat);
@@ -176,6 +185,32 @@ namespace LIS3DH {
         write(offsetof(sReg,fifo_ctrl_reg), 1, &reg);
       }
       //****************************************************************************************
+      void setInt1Threshold(u08 threshold) {
+        threshold = threshold & 0x7f;
+        write(offsetof(sReg,int1_ths), 1, &threshold);
+      }
+      //****************************************************************************************
+      void setOperatingMode(bool lowPower, bool enableZaxis, bool enableYaxis, bool enableXaxis) {
+        u08 reg;
+        read(offsetof(sReg,ctrl_reg1), 1, &reg);
+        reg = (reg & 0xf0) | (lowPower << 3 | enableZaxis << 2 | enableYaxis << 1 | enableXaxis);
+        write(offsetof(sReg,ctrl_reg1), 1, &reg);
+      }
+      //****************************************************************************************
+      void setDataRate(eDataRate odr) {
+        u08 reg;
+        read(offsetof(sReg,ctrl_reg1), 1, &reg);
+        reg = (reg & 0x0f) | (odr << 4);
+        write(offsetof(sReg,ctrl_reg1), 1, &reg);
+      }
+      //****************************************************************************************
+      void setHighPassFilter(eHighPassCutoff hpc, eHighPassMode hpm) {
+        u08 reg;
+        read(offsetof(sReg,ctrl_reg2), 1, &reg);
+        reg = (reg & 0x0f) | (hpm << 6 || hpc << 4);
+        write(offsetof(sReg,ctrl_reg2), 1, &reg);
+      }
+      //****************************************************************************************
       bool moved() {
         u08 reg;
         readIntrSrcReg(&reg);
@@ -186,6 +221,28 @@ namespace LIS3DH {
           int1SrcReg = reg;
           return false;
         }
+      }
+      //****************************************************************************************
+    private:
+      Ci2c* i2c;
+      bool ok;
+      u08 int1SrcReg;
+      //****************************************************************************************
+      bool read(u08 adr, u08 len, u08* dat) {
+        if (len > 1)
+          adr |= 0x80;
+
+        i2c->tx(1, &adr);
+        return (i2c->rx(len, dat));
+      }
+      //****************************************************************************************
+      void write(u08 adr, u08 len, u08* dat) {
+        u08 buf[8];
+        if (len > 1)
+          adr |= 0x80;
+        buf[0] = adr;
+        memcpy(&buf[1], dat, len);
+        i2c->tx(len + 1, buf);
       }
   };
 //****************************************************************************************
