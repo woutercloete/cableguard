@@ -124,7 +124,7 @@ namespace LIS3DH {
         dat = 0xff;
         //write(offsetof(sReg,ctrl_reg6), 1, &dat);
         // Set the 6D interrupt threshold
-        dat = 2;
+        dat = 10;
         write(offsetof(sReg,int1_ths), 1, &dat);
         // Set the 6D interrupt duration
         dat = 1;

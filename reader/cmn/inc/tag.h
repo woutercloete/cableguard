@@ -17,9 +17,6 @@
 /****************************************************************************************/
 using namespace FIR;
 /****************************************************************************************/
-const u08 tickThreshold = 4;
-const u08 rssiMargin = 5;
-/****************************************************************************************/
 namespace TAG {
   typedef struct {
       u32 tagID;
@@ -39,7 +36,7 @@ namespace TAG {
   } eState;
   /****************************************************************************************/
   typedef enum {
-    IN_RANGE = 0x1, OUT_RANGE = 0x2, MOVEMENT_CHANGED = 0x3, TAMPER = 0x4
+    IN_RANGE = 0x1, OUT_RANGE = 0x2, MOVEMENT_CHANGED = 0x3
   } eEvent;
 /****************************************************************************************/
 }
@@ -47,19 +44,25 @@ namespace TAG {
 class Ctag {
     friend class Ctagtable;
   private:
+    TAG::sServerTag02 serverTag;
     u08 cntTick;
     TAG::eState state;
+    u16 rssiThreshold;
     Cfir rssiFilter;
+    //Cfir movementFilter;
     u08 rssiIn;
+    //u08 movIn;
+    //u08 movOut;
+    //bool oldMoving;
+    //u08 movement;
     u08 movementNow;
     u08 movementPrev;
     u08 movementPrevPrev;
     bool movingNow;
     bool movingPrev;
+    bool startedMoving;
     bool stoppedMoving;
   public:
-    TAG::sServerTag02 serverTag;
-    u16 rssiThreshold;
     u08 rssiOut;
     //bool movementChanged;
     Ctag() {
@@ -76,50 +79,65 @@ class Ctag {
       for (u08 cnt = 0; cnt < 7; cnt++) {
         rssiFilter.setWeight(0.125, false);
       }
+//      rssiFilter.setWeight(-0.023957294012551478, true);
+//      rssiFilter.setWeight(-0.023759522572675367, false);
+//      rssiFilter.setWeight(0.152797829818546090, false);
+//      rssiFilter.setWeight(0.415345926257756510, false);
+//      rssiFilter.setWeight(0.415345926257756510, false);
+//      rssiFilter.setWeight(0.152797829818546090, false);
+//      rssiFilter.setWeight(-0.023759522572675367, false);
+//      rssiFilter.setWeight(-0.023957294012551478, false);
+//      movementFilter.setSize(3);
+//      movementFilter.setWeight(0.33, true);
+//      movementFilter.setWeight(0.33, false);
+//      movementFilter.setWeight(0.33, false);
+//      movIn = 0;
+//      oldMoving = false;
+      //movementChanged = false;
     }
     void update(TAG::sServerTag02* _serverTag) {
       movementPrevPrev = movementPrev;
       movementPrev = movementNow;
       movementNow = _serverTag->rfTag.movement;
       movingNow = !(movementPrev == movementNow && movementPrev == movementPrevPrev);
+      if (movingNow != movingPrev) {
+        if (movingNow) {
+          startedMoving = true;
+          stoppedMoving = false;
+        } else {
+          startedMoving = false;
+          stoppedMoving = true;
+        }
+      } else {
+        startedMoving = false;
+        stoppedMoving = false;
+      }
+      movingPrev = movingNow;
       cntTick = 0;
       serverTag.rssi = rssiOut;
       serverTag.rfTag.movement = movingNow;
+      //this->movIn = _serverTag->rfTag.movement;
       serverTag.rfTag.count = _serverTag->rfTag.count;
       serverTag.rfTag.lifecnt = _serverTag->rfTag.lifecnt;
       serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
       this->rssiIn = _serverTag->rssi;
     }
-    bool startedMoving(){
-      bool ret = (movingNow && !movingPrev);
-      movingPrev = movingNow;
-      return (ret);
-    }
-    bool sopedMoving(){
-      bool ret = (!movingNow && movingPrev);
-      movingPrev = movingNow;
-      return (ret);
-    }
-
     void setRange(u16 _rssiThreshold) {
       this->rssiThreshold = _rssiThreshold;
     }
     void setNew(TAG::sServerTag02* _serverTag, u16 _rssiThreshold) {
       cntTick = 0;
       this->rssiThreshold = _rssiThreshold;
-      serverTag.rssi = _serverTag->rssi;
-      serverTag.rfTag.movement = _serverTag->rfTag.movement;
-      movementNow = _serverTag->rfTag.movement;
-      movementPrev = _serverTag->rfTag.movement;
-      movementPrevPrev = _serverTag->rfTag.movement;
-      movingNow = false;
-      movingPrev = false;
+      serverTag.rssi = 90;
+      serverTag.rfTag.movement = false;
       serverTag.rfTag.count = _serverTag->rfTag.count;
       serverTag.rfTag.lifecnt = _serverTag->rfTag.lifecnt;
       serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
-      this->rssiIn = _serverTag->rssi;
-      this->rssiOut = _serverTag->rssi;
-      rssiFilter.fill(_serverTag->rssi);
+      this->rssiIn = serverTag.rssi;
+      this->rssiOut = 90;
+      //this->movIn = 0;
+      rssiFilter.fill(90);
+      //movementFilter.fill(0);
       state = TAG::NEW;
     }
     void setUnused() {
@@ -130,10 +148,19 @@ class Ctag {
     }
     void clock() {
       rssiFilter.clock(&rssiIn, &rssiOut);
+      //movementFilter.clock(&movIn, &movOut);
+      //movementChanged = (oldMoving != moved);
+      //oldMoving = moved;
       cntTick++;
     }
     void setState(TAG::eState state) {
       this->state = state;
+    }
+    u08 moved() {
+//      if (movOut > 127) {
+//        return true;
+//      }
+      return false;
     }
     u16 getLife() {
       return serverTag.rfTag.lifecnt;
@@ -144,6 +171,11 @@ class Ctag {
     bool getState() {
       return state;
     }
+//    void setDat(TAG::sRfTag* rfTag, u32 rssi) {
+//      this->serverTag.rfTag = *rfTag;
+//      this->serverTag.rfTag.movement = oldMoving;
+//      this->serverTag.rssi = rssi;
+//    }
     void resetTick(void) {
       cntTick = 0;
     }
@@ -151,10 +183,10 @@ class Ctag {
       return serverTag.rfTag.tagID;
     }
     bool isOutRange() {
-      return ((rssiOut > rssiThreshold + rssiMargin) || (cntTick > tickThreshold));
+      return (rssiOut > rssiThreshold + 5);
     }
     bool isInRange() {
-      return (rssiOut < rssiThreshold - rssiMargin);
+      return (rssiOut < rssiThreshold - 5);
     }
     void service();
 };

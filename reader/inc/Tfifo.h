@@ -13,8 +13,8 @@
 #define TFIFO_H_
 /****************************************************************************************/
 #include <stdlib.h>
-#include <util/atomic.h>
 #include <string.h>
+#include <util\atomic.h>
 /****************************************************************************************/
 #include "avrlibtypes.h"
 /****************************************************************************************/
@@ -22,7 +22,7 @@ template<class T>
 class Tfifo {
   private:
     u16 headIndex;
-    u16 tailIndex;
+    u16 writeIndex;
     u16 size;
     u16 _used;
     void* buffer;
@@ -43,7 +43,7 @@ template<class T>
 Tfifo<T>::Tfifo(void) {
   size = 0;
   headIndex = 0;
-  tailIndex = 0;
+  writeIndex = 0;
   buffer = 0;
   _used = 0;
 }
@@ -69,8 +69,8 @@ u16 Tfifo<T>::add(T* _src, u16 numBlocks) {
   void* dst;
   void* src = _src;
   u16 cnt = 0;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-    while (cnt < numBlocks && _used < size) {
+  while (cnt < numBlocks && _used < size) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
       dst = (void*) ((u16) buffer + (headIndex * sizeof(T)));
       memcpy(dst, src, sizeof(T));
       src = (void*) ((u16) src + sizeof(T));
@@ -90,14 +90,14 @@ u16 Tfifo<T>::remove(T* _dst, u16 numBlocks = 0) {
   if (numBlocks == 0)
     numBlocks = size;
   while (cnt < numBlocks && _used > 0) {
-    //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-    src = (void*) ((u16) buffer + (tailIndex * sizeof(T)));
-    memcpy(dst, src, sizeof(T));
-    dst = (void*) ((u16) dst + sizeof(T));
-    tailIndex = (tailIndex + 1) % size;
-    cnt++;
-    _used--;
-    //}
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+      src = (void*) ((u16) buffer + (writeIndex * sizeof(T)));
+      memcpy(dst, src, sizeof(T));
+      dst = (void*) ((u16) dst + sizeof(T));
+      writeIndex = (writeIndex + 1) % size;
+      cnt++;
+      _used--;
+    }
   }
   return cnt;
 }
@@ -109,11 +109,11 @@ bool Tfifo<T>::empty(void) {
 /****************************************************************************************/
 template<class T>
 void Tfifo<T>::clear(void) {
-  //ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-  tailIndex = 0;
-  headIndex = 0;
-  _used = 0;
-  //}
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    writeIndex = 0;
+    headIndex = 0;
+    _used = 0;
+  }
 }
 /****************************************************************************************/
 #endif

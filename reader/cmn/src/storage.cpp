@@ -25,17 +25,11 @@ Cstorage::Cstorage(Cat45db041* flashdrv) {
 #ifndef LOADER
     eraseFlash();
 #endif
-    activeConfigIndex = 0;
   }
   // Check if storage has been initilized.
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     eeprom_read_block(&eeprom, 0, sizeof(eeprom));
-    if (eeprom.magic == EEPROM_MAGIC_NUM_1) {
-#ifndef LOADER
-      //eraseEeprom();
-#endif
-    }
-    else {
+    if (eeprom.magic != EEPROM_MAGIC_NUM_0) {
 #ifndef LOADER
       eraseEeprom();
 #endif
@@ -95,9 +89,9 @@ void Cstorage::setConfig(sConfig _config) {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     if (_config.autoConnectTime.hour != 0) {
       eeprom_read_block(&eeprom, 0, sizeof(eeprom));
-      eeprom.activeConfig.sw = _config.sw;
-      eeprom.activeConfig.autoConnectTime = _config.autoConnectTime;
-      eeprom.activeConfig.rssiReject = _config.rssiReject;
+      eeprom.config.sw = _config.sw;
+      eeprom.config.autoConnectTime = _config.autoConnectTime;
+      eeprom.config.rssiReject = _config.rssiReject;
       eeprom_write_block(&eeprom, 0, sizeof(eeprom));
     }
   }
@@ -106,7 +100,7 @@ void Cstorage::setConfig(sConfig _config) {
 void Cstorage::setMacAdr(sMacADR adr) {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     eeprom_read_block(&eeprom, 0, sizeof(eeprom));
-    eeprom.activeConfig.macAdr = adr;
+    eeprom.config.macAdr = adr;
     eeprom_write_block(&eeprom, 0, sizeof(eeprom));
   }
 }
@@ -114,7 +108,7 @@ void Cstorage::setMacAdr(sMacADR adr) {
 void Cstorage::setNetConfig(sNetConfig netConfig) {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     eeprom_read_block(&eeprom, 0, sizeof(eeprom));
-    eeprom.activeConfig.netConfig = netConfig;
+    eeprom.config.netConfig = netConfig;
     eeprom_write_block(&eeprom, 0, sizeof(eeprom));
   }
 }
@@ -122,7 +116,7 @@ void Cstorage::setNetConfig(sNetConfig netConfig) {
 void Cstorage::setServerConfig(sServerConfig serverConfig) {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     eeprom_read_block(&eeprom, 0, sizeof(eeprom));
-    eeprom.activeConfig.serverConfig = serverConfig;
+    eeprom.config.serverConfig = serverConfig;
     eeprom_write_block(&eeprom, 0, sizeof(eeprom));
   }
 }
@@ -130,7 +124,7 @@ void Cstorage::setServerConfig(sServerConfig serverConfig) {
 void Cstorage::setReaderID(u32 _readerID) {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     eeprom_read_block(&eeprom, 0, sizeof(eeprom));
-    eeprom.activeConfig.readerID = _readerID;
+    eeprom.config.readerID = _readerID;
     eeprom.readerConfigured = true;
     eeprom_write_block(&eeprom, 0, sizeof(eeprom));
   }
@@ -181,27 +175,26 @@ void Cstorage::eraseFlash() {
 /****************************************************************************************/
 #ifndef LOADER
 void Cstorage::eraseEeprom() {
-  eeprom.magic = EEPROM_MAGIC_NUM_1;
+  eeprom.magic = EEPROM_MAGIC_NUM_0;
   eeprom.networkConfigured = false;
   eeprom.readerConfigured = false;
-  eeprom.activeConfig.autoConnectTime = defAutoTime;
-  eeprom.activeConfig.readerID = 0x0;
-  eeprom.activeConfig.rf.adr = CC1101_DEFVAL_ADDR;
-  eeprom.activeConfig.rf.channel = CC1101_DEFVAL_CHANNR;
-  eeprom.activeConfig.sw.crc = 0x00000000;
-  eeprom.activeConfig.sw.revision = 0x0;
-  eeprom.activeConfig.sw.numBlocks = 0;
-  eeprom.activeConfig.sw.blockSize = 0;
-  eeprom.activeConfig.sw.size = 0;
-  eeprom.activeConfig.macAdr = defMacAdr;
-  eeprom.activeConfig.serverConfig.ip = defServerIP[0];
-  eeprom.activeConfig.serverConfig.port = defServerPort;
-  eeprom.activeConfig.netConfig.src = defReaderIP[0];
-  eeprom.activeConfig.netConfig.netMask = defNetMask[0];
-  eeprom.activeConfig.netConfig.useDHCP = defDHCP[0];
-  eeprom.activeConfig.netConfig.dns = defDns[0];
-  eeprom.activeConfig.netConfig.gateway = defGateway[0];
-  eeprom.activeConfig.rssiReject = defRssiThreshold;
+  eeprom.config.autoConnectTime = defAutoTime;
+  eeprom.config.readerID = 0x0;
+  eeprom.config.rf.adr = CC1101_DEFVAL_ADDR;
+  eeprom.config.rf.channel = CC1101_DEFVAL_CHANNR;
+  eeprom.config.sw.crc = 0x00000000;
+  eeprom.config.sw.revision = 0x0;
+  eeprom.config.sw.numBlocks = 0;
+  eeprom.config.sw.blockSize = 0;
+  eeprom.config.sw.size = 0;
+  eeprom.config.macAdr = defMacAdr;
+  eeprom.config.serverConfig.ip = defServerIP;
+  eeprom.config.serverConfig.port = defServerPort;
+  eeprom.config.netConfig.src = defReaderIP;
+  eeprom.config.netConfig.netMask = defNetMask;
+  eeprom.config.netConfig.useDHCP = B_FALSE;
+  eeprom.config.netConfig.dns = defDns;
+  eeprom.config.netConfig.gateway = defGateway;
 
   // Save the default config
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {

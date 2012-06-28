@@ -34,9 +34,9 @@ namespace FIR {
       //****************************************************************************************
       void setSize(u08 size) {
         delayLine.setBufSize(size);
-//        weight = (f32*) malloc(size * sizeof(f32));
-//        while (weight == NULL) {
-//        };
+        //weight = (f32*) malloc(size * sizeof(f32));
+        //while (weight == NULL) {
+        //};
       }
       //****************************************************************************************
       void setWeight(f32 _weight, bool first) {

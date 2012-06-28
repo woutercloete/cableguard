@@ -11,10 +11,11 @@
 #include "at45db041.h"
 /****************************************************************************************/
 #define FLASH_MAGIC_NUM_0     0xA1B2C100
-#define FLASH_MAGIC_NUM_1     0xA1B2C101
-/****************************************************************************************/
 #define EEPROM_MAGIC_NUM_0    0xA1B2C300
-#define EEPROM_MAGIC_NUM_1    0xA1B2C301
+/****************************************************************************************/
+#define WOUTER_DRAXIN
+#undef PIETER_HUIS
+#undef PIETER_DRAXIN
 /****************************************************************************************/
 using namespace XREADER;
 /****************************************************************************************/
@@ -25,19 +26,18 @@ const u16 swSizePage = ceil(swSizeBytes / pageSize);
 const u32 swTopPage = ((u16) swBasePage + (u16) swSizePage - 1);
 const u08 swBlocksPerPage = floor(pageSize / sizeof(sSwBlock));
 /****************************************************************************************/
-const u08 numConfigs = 3;
-const u08 defRssiThreshold = 250;
-const sIP defServerIP[] = { { 172, 17, 49, 48 }, { 192, 168, 15, 74 }, { 10, 0, 0, 252 } };
-const sIP defReaderIP[] =
-    { { 172, 17, 49, 210 }, { 192, 168, 15, 210 }, { 10, 0, 0, 250 } };
-const sIP defDns[] = { { 172, 17, 49, 20 }, { 192, 168, 15, 1 }, { 10, 0, 0, 1 } };
-const sIP defGateway[] = { { 172, 17, 48, 2 }, { 192, 168, 15, 7 }, { 10, 0, 0, 1 } };
-const eBool defDHCP[] = { B_TRUE, B_TRUE, B_TRUE };
-const sIP defNetMask[] = { { 255, 255, 255, 0 }, { 255, 255, 255, 0 },
-                           { 255, 255, 255, 0 } };
+#ifdef WOUTER_DRAXIN
+const sIP defServerIP = {192, 168, 15, 74};
+const sIP defReaderIP = {192, 168, 15, 210};
+#else
+const sIP defServerIP = { 10, 0, 0, 252 };
+const sIP defReaderIP = { 10, 0, 0, 250 };
+#endif
+const sIP defNetMask = { 255, 255, 255, 0 };
+const sIP defDns = { 10, 0, 0, 1 };
+const sIP defGateway = { 10, 0, 0, 1 };
 const u16 defServerPort = 7667;
 const sMacADR defMacAdr = { 0x00, 0x00, 0x00, 0xDC, 0x08, 0x00 };
-/****************************************************************************************/
 const sDate defAutoTime = { 0, 0, 0, 4, 0, 0 };
 const u16 bufSize = (SW_BLOCK_SIZE * 2);
 /****************************************************************************************/
@@ -47,28 +47,18 @@ class Cstorage {
         u32 magic;
         bool networkConfigured;
         bool readerConfigured;
-        sConfig activeConfig;
-        sConfig configs[numConfigs];
+        sConfig config;
     } eeprom;
     struct {
         u32 magic;
         sSwMeta currentSw;
         sSwMeta storedSw;
     } flash;
-    u08 activeConfigIndex;
     sNetConfig dhcpConfig;
     Cat45db041* flashdrv;
     Cstorage(Cat45db041* flash);
-    bool incActiveConfig() {
-      activeConfigIndex++;
-      if (activeConfigIndex < numConfigs) {
-        eeprom.activeConfig = eeprom.configs[activeConfigIndex];
-        return true;
-      }
-      return false;
-    }
-    u08 getRSSIThreshold() {
-      return eeprom.activeConfig.rssiReject;
+    u08 getRSSIThreshold(){
+      return eeprom.config.rssiReject;
     }
     void setStoredSwMeta(sSwMeta meta);
     void setCurrentSwMeta(sSwMeta meta);
@@ -85,8 +75,8 @@ class Cstorage {
     u32 getReaderID(void) {
       ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         eeprom_read_block(&eeprom, 0, sizeof(eeprom));
+        return eeprom.config.readerID;
       }
-      return eeprom.activeConfig.readerID;
     }
     void getSwBlock(sSwBlock* block);
     void calcSwBlockCRC(sSwBlock* block, u16* crc);
