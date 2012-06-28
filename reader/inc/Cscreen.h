@@ -187,8 +187,8 @@ class Ctagscreen: public Cscreen {
       u08 strEvent[16];
       memset(&screen, 32, sizeof(screen));
       snprintf((c08*) &screen.lines[0][0], screenMaxCol, "#%04X%04X %d",
-               (u16) (tag->serverTag.rfTag.tagID >> 16), (u16) tag->serverTag.rfTag.tagID);
-      snprintf((c08*) &screen.lines[1][0], screenMaxCol, "RSSI: %d %d %d", tag->rssiOut, tag->serverTag.rfTag.movement);
+               (u16) (tag->serverTag.rfTag.tagID >> 16), (u16) tag->serverTag.rfTag.tagID, tag->serverTag.rfTag.count);
+      snprintf((c08*) &screen.lines[1][0], screenMaxCol, "RSSI: %d %d", tag->rssiOut, tag->serverTag.rfTag.movement);
       Cscreen::build();
     }
     /****************************************************************************************/

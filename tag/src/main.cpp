@@ -19,7 +19,6 @@ int main(void) {
 	while (1) {
 		handler.run();
 		if (motion.moved() || lp2.isEnabled()) {
-		//if (lp2.isEnabled()) {
 			handler.tag.movement++;
 		}
 	}
