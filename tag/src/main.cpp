@@ -11,7 +11,7 @@ Cpin lp2(ePORTD, 6, ePinIn, true);
 Ci2c motionBus(0xB8, 8, 64);
 Clis3dh motion(&motionBus, ePinHigh);
 CC1101 cc1101(1, 0);
-CHandler handler(&cc1101, 0x0011007C, WDTO_4S);
+CHandler handler(&cc1101, 0x0011008F, WDTO_4S);
 /****************************************************************************************/
 int main(void) {
   sei();
