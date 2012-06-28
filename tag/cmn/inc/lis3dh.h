@@ -58,6 +58,7 @@ typedef enum {
 	HPM_AUTORESET = 0x3
 } eHighPassMode;
 //****************************************************************************************
+//****************************************************************************************
 typedef struct {
 	u08 reserveda[7];
 	u08 status_reg_aux;
@@ -110,6 +111,7 @@ class Clis3dh {
 public:
 	//****************************************************************************************
 	Clis3dh(Ci2c* i2c, ePinState A0) {
+		sReg reg;
 		u08 adr = 0x18;
 		u08 dat;
 		ok = false;
@@ -126,6 +128,40 @@ public:
 		dat = 0x08;
 		write(offsetof(sReg,ctrl_reg5), 1, &dat);
 		setFifoMode(FIFO_BYPASS_MODE);
+		// The next piece of code is neede to stop the I2C bus from hanging Why? TODO
+		read(0x00, sizeof(sReg), (u08*) &reg);
+		if (reg.who_am_i == 0x33 && reg.ctrl_reg1 == 0x17) {
+			ok = true;
+		}
+	}
+	//****************************************************************************************
+	void setDataRate(eDataRate odr) {
+		u08 reg;
+		read(offsetof(sReg,ctrl_reg1), 1, &reg);
+		reg = (reg & 0x0f) | (odr << 4);
+		write(offsetof(sReg,ctrl_reg1), 1, &reg);
+	}
+	//****************************************************************************************
+	void setOperatingMode(bool lowPower = true, bool enableZaxis = true,
+			bool enableYaxis = true, bool enableXaxis = true) {
+		u08 reg;
+		read(offsetof(sReg,ctrl_reg1), 1, &reg);
+		reg = (reg & 0xf0)
+				| (lowPower << 3 | enableZaxis << 2 | enableYaxis << 1
+						| enableXaxis);
+		write(offsetof(sReg,ctrl_reg1), 1, &reg);
+	}
+	//****************************************************************************************
+	void readAccel(sAccel* dat) {
+		read(offsetof(sReg,out_x_l), sizeof(sAccel), (u08*) dat);
+	}
+	//****************************************************************************************
+	void readIntrCntReg(u08* cnt) {
+		read(offsetof(sReg,int_counter_reg), 1, cnt);
+	}
+	//****************************************************************************************
+	void readIntrSrcReg(u08* reg) {
+		read(offsetof(sReg,int1_source), 1, reg);
 	}
 	//****************************************************************************************
 	void getAccel(sAccel* dat) {
@@ -173,23 +209,6 @@ public:
 		write(offsetof(sReg,int1_ths), 1, &threshold);
 		duration = duration & 0x7f;
 		write(offsetof(sReg,int1_duration), 1, &duration);
-	}
-	//****************************************************************************************
-	void setOperatingMode(bool lowPower = true, bool enableZaxis = true,
-			bool enableYaxis = true, bool enableXaxis = true) {
-		u08 reg;
-		read(offsetof(sReg,ctrl_reg1), 1, &reg);
-		reg = (reg & 0xf0)
-				| (lowPower << 3 | enableZaxis << 2 | enableYaxis << 1
-						| enableXaxis);
-		write(offsetof(sReg,ctrl_reg1), 1, &reg);
-	}
-	//****************************************************************************************
-	void setDataRate(eDataRate odr) {
-		u08 reg;
-		read(offsetof(sReg,ctrl_reg1), 1, &reg);
-		reg = (reg & 0x0f) | (odr << 4);
-		write(offsetof(sReg,ctrl_reg1), 1, &reg);
 	}
 	//****************************************************************************************
 	void setHighPassFilter(eHighPassCutoff hpc, eHighPassMode hpm,
