@@ -22,7 +22,7 @@
 							<option id="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug.1103268371" name="Print Size" superClass="de.innot.avreclipse.toolchain.options.toolchain.size.app.debug"/>
 							<option id="de.innot.avreclipse.toolchain.options.toolchain.avrdude.app.debug.1733458531" name="AVRDude" superClass="de.innot.avreclipse.toolchain.options.toolchain.avrdude.app.debug"/>
 							<targetPlatform id="de.innot.avreclipse.targetplatform.winavr.app.debug.1434038615" name="AVR Cross-Target" superClass="de.innot.avreclipse.targetplatform.winavr.app.debug"/>
-							<builder buildPath="${workspace_loc:/XReader/Debug}" enableAutoBuild="true" id="de.innot.avreclipse.target.builder.winavr.app.debug.1261834788" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="AVR GNU Make Builder" parallelBuildOn="false" parallelizationNumber="4" stopOnErr="false" superClass="de.innot.avreclipse.target.builder.winavr.app.debug">
+							<builder buildPath="${workspace_loc:/XReader/Debug}" enableAutoBuild="false" enableCleanBuild="false" id="de.innot.avreclipse.target.builder.winavr.app.debug.1261834788" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="AVR GNU Make Builder" parallelBuildOn="false" parallelizationNumber="4" stopOnErr="true" superClass="de.innot.avreclipse.target.builder.winavr.app.debug">
 								<outputEntries>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Debug"/>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Release"/>

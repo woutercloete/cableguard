@@ -47,7 +47,6 @@ namespace TAG {
 class Ctag {
     friend class Ctagtable;
   private:
-    TAG::sServerTag02 serverTag;
     u08 cntTick;
     TAG::eState state;
     Cfir rssiFilter;
@@ -59,6 +58,7 @@ class Ctag {
     bool movingPrev;
     bool stoppedMoving;
   public:
+    TAG::sServerTag02 serverTag;
     u16 rssiThreshold;
     u08 rssiOut;
     //bool movementChanged;

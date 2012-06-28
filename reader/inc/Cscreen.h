@@ -183,6 +183,15 @@ class Ctagscreen: public Cscreen {
         Cscreen(display, store, date) {
     }
     /****************************************************************************************/
+    void build(Ctag* tag) {
+      u08 strEvent[16];
+      memset(&screen, 32, sizeof(screen));
+      snprintf((c08*) &screen.lines[0][0], screenMaxCol, "#%04X%04X %d",
+               (u16) (tag->serverTag.rfTag.tagID >> 16), (u16) tag->serverTag.rfTag.tagID);
+      snprintf((c08*) &screen.lines[1][0], screenMaxCol, "RSSI: %d %d %d", tag->rssiOut, tag->serverTag.rfTag.movement);
+      Cscreen::build();
+    }
+    /****************************************************************************************/
     void build(C1101::sRadioPacket* pkt, u08 filRssi, u08 rssiReject) {
       u08 strEvent[16];
       if (event.eventType == TAG::IN_RANGE) {

@@ -32,21 +32,13 @@ int main(void) {
   pinSendSMSTamper.setHigh();
   sei();
   pscreen = &welcome;
-  //welcome.build();
-  //welcome.display(1000);
+  welcome.build();
+  welcome.display(1000);
   scheduler.attach(&screen.signal);
   scheduler.start();
-//  configureNetwork();
-//  configureReader();
-
   cc1101.enable();
-  //wdt_enable(WDTO_2S);
   while (1) {
-//    wdt_reset();
-//    checkAutoconnect();
     checkTags();
-//    checkDate();
-//    pscreen->service();
   }
 }
 /****************************************************************************************/
@@ -63,8 +55,8 @@ void checkTags() {
   if (!cc1101.rxFifo.empty()) {
     cc1101.rxFifo.remove(&pkt, 1);
     tagTable.add(&pkt);
-    //tagscreen.build(&pkt, tags[0].rssiOut, tags[0].rssiThreshold);
-    //tagscreen.display();
+    tagscreen.build(&tags[0]);
+    tagscreen.display();
   }
   // Send SMS
   if (!tagTable.events.empty()) {
