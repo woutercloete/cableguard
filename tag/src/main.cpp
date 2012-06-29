@@ -12,7 +12,7 @@ Cpin sda(ePORTC, 4, ePinOut, true);
 Cpin lp1(ePORTD, 5, ePinOut, true);
 Cpin lp2(ePORTD, 6, ePinIn, true);
 Ci2c motionBus(0xB8, 8, 64);
-Clis3dh motion(&motionBus, ePinHigh, 3);
+Clis3dh motion(&motionBus, ePinHigh, 10);
 CC1101 cc1101(1, 0);
 CHandler handler(&cc1101, 0x0011008F, TX_INTERVAL_SLOW);
 u08 reg, cntTx;

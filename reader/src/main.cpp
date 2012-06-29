@@ -58,26 +58,29 @@ void checkTags() {
     tagscreen.build(&tags[0]);
     tagscreen.display();
   }
+
   // Send SMS
   if (!tagTable.events.empty()) {
     tagTable.events.remove(&event, 1);
     if (event.eventType == OUT_RANGE) {
       pinSendSMSRange.setLow();
+      tagscreen.build();
+      tagscreen.display();
       _delay_ms(1000);
       pinSendSMSRange.setHigh();
-    }
-    else if (event.eventType == MOVEMENT_CHANGED) {
+    } else if (event.eventType == MOVEMENT_CHANGED) {
       pinSendSMSMove.setLow();
+      tagscreen.build();
+      tagscreen.display();
       _delay_ms(1000);
       pinSendSMSMove.setHigh();
-    }
-    else if (event.eventType == TAMPER) {
+    } else if (event.eventType == TAMPER) {
       pinSendSMSTamper.setLow();
+      tagscreen.build();
+      tagscreen.display();
       _delay_ms(1000);
       pinSendSMSTamper.setHigh();
     }
-    tagscreen.build();
-    tagscreen.display();
   }
 }
 ///****************************************************************************************/

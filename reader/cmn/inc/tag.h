@@ -17,7 +17,7 @@
 /****************************************************************************************/
 using namespace FIR;
 /****************************************************************************************/
-const u08 tickThreshold = 4;
+const u08 tickThreshold = 20;
 const u08 rssiMargin = 5;
 /****************************************************************************************/
 namespace TAG {
@@ -59,6 +59,7 @@ class Ctag {
     bool stoppedMoving;
   public:
     bool tamper;
+    u08 tamperCnt;
     u08 movementNow;
     TAG::sServerTag02 serverTag;
     u16 rssiThreshold;
@@ -92,12 +93,12 @@ class Ctag {
       serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
       this->rssiIn = _serverTag->rssi;
     }
-    bool startedMoving(){
+    bool startedMoving() {
       bool ret = (movingNow && !movingPrev);
       movingPrev = movingNow;
       return (ret);
     }
-    bool sopedMoving(){
+    bool sopedMoving() {
       bool ret = (!movingNow && movingPrev);
       movingPrev = movingNow;
       return (ret);
@@ -107,6 +108,8 @@ class Ctag {
       this->rssiThreshold = _rssiThreshold;
     }
     void setNew(TAG::sServerTag02* _serverTag, u16 _rssiThreshold) {
+      tamper = 0;
+      tamperCnt = 0;
       cntTick = 0;
       this->rssiThreshold = _rssiThreshold;
       serverTag.rssi = _serverTag->rssi;

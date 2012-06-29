@@ -121,7 +121,7 @@ public:
 		i2c->setDevAdr(adr);
 		setOperatingMode(false);
 		setDataRate(ODR_25Hz);
-		//setHighPassFilter(HPC_10, HPM_NORMAL_RESET,true);
+		setHighPassFilter(HPC_10, HPM_NORMAL_RESET,true);
 		setInt1Threshold(threshold, 1);
 		setInt1Config(false, false);
 		// Clear the 4d interrupt
