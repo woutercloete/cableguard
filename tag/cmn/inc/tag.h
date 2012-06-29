@@ -23,6 +23,7 @@ namespace TAG {
       u08 count;
       u16 lifecnt;
       u08 movement;
+      u08 tamper;
   } sRfTag;
   /****************************************************************************************/
   typedef struct {

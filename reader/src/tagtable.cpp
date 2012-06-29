@@ -29,6 +29,7 @@ bool Ctagtable::add(C1101::sRadioPacket* radioPacket) {
     if (tags[cnt].isUsed()) {
       if (radioPacket->tag.tagID == tags[cnt].getTagID()) {
         // Update tag
+        tags[cnt].tamper = radioPacket->tag.tamper;
         serverTag.rssi = radioPacket->rssi;
         serverTag.lqi = radioPacket->lqi;
         serverTag.rfTag = radioPacket->tag;
@@ -40,6 +41,7 @@ bool Ctagtable::add(C1101::sRadioPacket* radioPacket) {
   // Tag is not in tags yet add it.
   for (cnt = 0; cnt < MAX_NUM_TAGS; cnt++) {
     if (!tags[cnt].isUsed()) {
+      tags[cnt].tamper = radioPacket->tag.tamper;
       serverTag.rssi = radioPacket->rssi;
       serverTag.lqi = radioPacket->lqi;
       serverTag.rfTag = radioPacket->tag;

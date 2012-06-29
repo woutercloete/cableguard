@@ -23,6 +23,7 @@ public:
 		tag.lifecnt = 0;
 		tag.movement = 0xFF;
 		tag.count = 0;
+		tag.tamper = 1;
 		state = SLEEP;
 		txSeqNr = 0;
 		txinterval = _txinterval;
@@ -32,7 +33,11 @@ public:
 		// PSU PIN
 		sbi(DDRD, 5);
 		// Test PIN
-	};
+	}
+	;
+	void setTxInterval(u08 _txInterval) {
+		txinterval = _txInterval;
+	}
 	void run(void);
 };
 /****************************************************************************************/

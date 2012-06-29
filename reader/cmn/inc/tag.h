@@ -26,6 +26,7 @@ namespace TAG {
       u08 count;
       u16 lifecnt;
       u08 movement;
+      u08 tamper;
   } sRfTag;
   /****************************************************************************************/
   typedef struct {
@@ -51,13 +52,14 @@ class Ctag {
     TAG::eState state;
     Cfir rssiFilter;
     u08 rssiIn;
-    u08 movementNow;
     u08 movementPrev;
     u08 movementPrevPrev;
     bool movingNow;
     bool movingPrev;
     bool stoppedMoving;
   public:
+    bool tamper;
+    u08 movementNow;
     TAG::sServerTag02 serverTag;
     u16 rssiThreshold;
     u08 rssiOut;

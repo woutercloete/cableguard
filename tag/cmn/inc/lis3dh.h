@@ -110,7 +110,7 @@ typedef struct {
 class Clis3dh {
 public:
 	//****************************************************************************************
-	Clis3dh(Ci2c* i2c, ePinState A0) {
+	Clis3dh(Ci2c* i2c, ePinState A0, u08 threshold) {
 		sReg reg;
 		u08 adr = 0x18;
 		u08 dat;
@@ -121,18 +121,22 @@ public:
 		i2c->setDevAdr(adr);
 		setOperatingMode(false);
 		setDataRate(ODR_25Hz);
-		setHighPassFilter(HPC_11, HPM_NORMAL_RESET);
-		setInt1Threshold(30, 1);
+		//setHighPassFilter(HPC_10, HPM_NORMAL_RESET,true);
+		setInt1Threshold(threshold, 1);
 		setInt1Config(false, false);
 		// Clear the 4d interrupt
-		dat = 0x08;
-		write(offsetof(sReg,ctrl_reg5), 1, &dat);
+		//#dat = 0x08;
+		//#write(offsetof(sReg,ctrl_reg5), 1, &dat);
 		setFifoMode(FIFO_BYPASS_MODE);
 		// The next piece of code is neede to stop the I2C bus from hanging Why? TODO
 		read(0x00, sizeof(sReg), (u08*) &reg);
 		if (reg.who_am_i == 0x33 && reg.ctrl_reg1 == 0x17) {
 			ok = true;
 		}
+	}
+	//****************************************************************************************
+	void readReference(u08* ref) {
+		read(offsetof(sReg,reference), 1, ref);
 	}
 	//****************************************************************************************
 	void setDataRate(eDataRate odr) {
@@ -230,12 +234,12 @@ public:
 			return false;
 		}
 	}
-	//****************************************************************************************
+//****************************************************************************************
 private:
 	Ci2c* i2c;
 	bool ok;
 	u08 int1SrcReg;
-	//****************************************************************************************
+//****************************************************************************************
 	bool read(u08 adr, u08 len, u08* dat) {
 		if (len > 1)
 			adr |= 0x80;
@@ -243,7 +247,7 @@ private:
 		i2c->tx(1, &adr);
 		return (i2c->rx(len, dat));
 	}
-	//****************************************************************************************
+//****************************************************************************************
 	void write(u08 adr, u08 len, u08* dat) {
 		u08 buf[8];
 		if (len > 1)
