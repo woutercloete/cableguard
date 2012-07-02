@@ -68,11 +68,9 @@ void Ctagtable::service(void) {
     snprintf(finalStr, DEBUG_UART_BUF_SIZE, "\r\n");
     for (u08 cnt = 0; cnt < MAX_NUM_TAGS; cnt++) {
       if (tags[cnt].isUsed()) {
-        snprintf(str, DEBUG_UART_BUF_SIZE, "#%04X%04X %3d %3d %3d %3d %3d %3d ",
-                 (u16) (tags[cnt].serverTag.rfTag.tagID >> 16),
+        snprintf(str, DEBUG_UART_BUF_SIZE, "#%04X %3d %3d %3d %3d ",
                  (u16) tags[cnt].serverTag.rfTag.tagID, tags[cnt].serverTag.rfTag.count,
-                 tags[cnt].movementNow, tags[cnt].tamper, tags[cnt].rssiIn,
-                 tags[cnt].rssiOut, tags[cnt].rssiThreshold);
+                 tags[cnt].movementNow, tags[cnt].tamper, tags[cnt].rssiOut);
         strcat(finalStr, str);
       }
     }
