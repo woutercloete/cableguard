@@ -7,39 +7,39 @@
 #include <avr/interrupt.h>
 
 #include "common.h"
-#include "CFIFO.h"
+#include "fifo.h"
 
 //#define UART_MINIMAL
 
 #ifdef SIG_UART_DATA
 #warning UART REGISTERS FOR MEGA 8
-	extern "C" void SIG_UART_DATA(void) __attribute__ ((signal));
-	extern "C" void SIG_UART_TRANS(void) __attribute__ ((signal));
-	extern "C" void SIG_UART_RECV(void) __attribute__ ((signal));
+extern "C" void SIG_UART_DATA(void) __attribute__ ((signal));
+extern "C" void SIG_UART_TRANS(void) __attribute__ ((signal));
+extern "C" void SIG_UART_RECV(void) __attribute__ ((signal));
 #endif
 
 #ifdef SIG_USART0_DATA
-	extern "C" void SIG_USART0_DATA(void) __attribute__ ((signal));
-	extern "C" void SIG_USART0_TRANS(void) __attribute__ ((signal));
-	extern "C" void SIG_USART0_RECV(void) __attribute__ ((signal));
+extern "C" void SIG_USART0_DATA(void) __attribute__ ((signal));
+extern "C" void SIG_USART0_TRANS(void) __attribute__ ((signal));
+extern "C" void SIG_USART0_RECV(void) __attribute__ ((signal));
 #endif
 
 #ifdef UDR1
-	extern "C" void SIG_USART1_DATA(void) __attribute__ ((signal));
-	extern "C" void SIG_USART1_TRANS(void) __attribute__ ((signal));
-	extern "C" void SIG_USART1_RECV(void) __attribute__ ((signal));
+extern "C" void SIG_USART1_DATA(void) __attribute__ ((signal));
+extern "C" void SIG_USART1_TRANS(void) __attribute__ ((signal));
+extern "C" void SIG_USART1_RECV(void) __attribute__ ((signal));
 #endif
 
 #ifdef UDR2
-	extern "C" void SIG_USART2_DATA(void) __attribute__ ((signal));
-	extern "C" void SIG_USART2_TRANS(void) __attribute__ ((signal));
-	extern "C" void SIG_USART2_RECV(void) __attribute__ ((signal));
+extern "C" void SIG_USART2_DATA(void) __attribute__ ((signal));
+extern "C" void SIG_USART2_TRANS(void) __attribute__ ((signal));
+extern "C" void SIG_USART2_RECV(void) __attribute__ ((signal));
 #endif
 
 #ifdef UDR3
-	extern "C" void SIG_USART3_DATA(void) __attribute__ ((signal));
-	extern "C" void SIG_USART3_TRANS(void) __attribute__ ((signal));
-	extern "C" void SIG_USART3_RECV(void) __attribute__ ((signal));
+extern "C" void SIG_USART3_DATA(void) __attribute__ ((signal));
+extern "C" void SIG_USART3_TRANS(void) __attribute__ ((signal));
+extern "C" void SIG_USART3_RECV(void) __attribute__ ((signal));
 #endif
 
 class CUART {
@@ -51,15 +51,15 @@ class CUART {
     u08 txCnt;
     u16 lastTxTime;
   public:
-	CFIFO rxFIFO;
-	CFIFO txFIFO;
+    Tfifo<u08> rxFIFO;
+    Tfifo<u08> txFIFO;
     //volatile u32 time;
     u08 txBusy;
     u08 enable485;
     u08 healthy;
     u32 baudRate;
-    CUART(u08 uartNr, u32 baudRate, u16 bufSize);
-    CUART(u08 uartNr, u32 baudRate, u16 bufSize, u08 enable485);
+    CUART(u08 uartNr, u32 baudRate, u08 txBufSize = 8, u08 rxBufSize = 8, bool enable485 =
+              false);
     u16 send(c08* buffer, u16 nBytes);
 #ifndef UART_MINIMAL
     u16 send_P(const prog_char buf[], u16 nBytes);
@@ -74,35 +74,34 @@ class CUART {
     void clearRx(void);
     void setBaudRate(u32 baudrate);
     void setFrame(void);
-	/// Interrupt routines.
+    /// Interrupt routines.
 #ifdef UDR
-	friend void SIG_UART_DATA(void);
-	friend void SIG_UART_TRANS(void);
-	friend void SIG_UART_RECV(void);
+    friend void SIG_UART_DATA(void);
+    friend void SIG_UART_TRANS(void);
+    friend void SIG_UART_RECV(void);
 #endif
 #ifdef UDR0
-	friend void SIG_USART0_DATA(void);
-	friend void SIG_USART0_TRANS(void);
-	friend void SIG_USART0_RECV(void);
+    friend void SIG_USART0_DATA(void);
+    friend void SIG_USART0_TRANS(void);
+    friend void SIG_USART0_RECV(void);
 #endif
 #ifdef UDR1
-	friend void SIG_USART1_DATA(void);
-	friend void SIG_USART1_TRANS(void);
-	friend void SIG_USART1_RECV(void);
+    friend void SIG_USART1_DATA(void);
+    friend void SIG_USART1_TRANS(void);
+    friend void SIG_USART1_RECV(void);
 #endif
 #ifdef UDR2
-	friend void SIG_USART2_DATA(void);
-	friend void SIG_USART2_TRANS(void);
-	friend void SIG_USART2_RECV(void);
+    friend void SIG_USART2_DATA(void);
+    friend void SIG_USART2_TRANS(void);
+    friend void SIG_USART2_RECV(void);
 #endif
 #ifdef UDR3
-	friend void SIG_USART3_DATA(void);
-	friend void SIG_USART3_TRANS(void);
-	friend void SIG_USART3_RECV(void);
+    friend void SIG_USART3_DATA(void);
+    friend void SIG_USART3_TRANS(void);
+    friend void SIG_USART3_RECV(void);
 #endif
 
 };
-
 
 #endif
 

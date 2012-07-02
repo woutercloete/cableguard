@@ -25,7 +25,8 @@ void Cserial::clearRx(void) {
 }
 /****************************************************************************************/
 void Cserial::setBufSize(u16 bufSize) {
-  healthy = (rxFIFO.setBufSize(bufSize) && txFIFO.setBufSize(bufSize));
+  rxFIFO.setBufSize(bufSize);
+  txFIFO.setBufSize(bufSize);
 }
 /****************************************************************************************/
 u16 Cserial::receive(u08* buffer, u16 nBytes) {

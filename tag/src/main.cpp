@@ -14,29 +14,32 @@ Cpin lp2(ePORTD, 6, ePinIn, true);
 Ci2c motionBus(0xB8, 8, 64);
 Clis3dh motion(&motionBus, ePinHigh, 10);
 CC1101 cc1101(1, 0);
-CHandler handler(&cc1101, 0x0011008F, TX_INTERVAL_SLOW);
+CHandler handler(&cc1101, 0x00110001, TX_INTERVAL_SLOW);
 u08 reg, cntTx;
 /****************************************************************************************/
 int main(void) {
+	sAccel acel;
 	sei();
 	lp1.setDisable();
 	while (1) {
 		handler.run();
-		if (motion.moved()) {
-			handler.tag.movement++;
-			cntTx = 10;
-		}
-		if (lp2.isEnabled()) {
-			handler.tag.tamper = 1;
-			cntTx = 10;
-		}
-		if (cntTx > 0) {
-			handler.setTxInterval(TX_INTERVAL_FAST);
-			cntTx--;
-		} else {
-			handler.setTxInterval(TX_INTERVAL_SLOW);
-			handler.tag.tamper = 0;
-		}
+//		if (motion.moved()) {
+//			handler.tag.movement++;
+//			cntTx = 10;
+//		}
+		motion.readAccel(&handler.tag.acel);
+
+//		if (lp2.isEnabled()) {
+//			handler.tag.tamper = 1;
+//			cntTx = 10;
+//		}
+//		if (cntTx > 0) {
+//			handler.setTxInterval(TX_INTERVAL_FAST);
+//			cntTx--;
+//		} else {
+//			handler.setTxInterval(TX_INTERVAL_SLOW);
+//			handler.tag.tamper = 0;
+//		}
 	}
 }
 /****************************************************************************************/

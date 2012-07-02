@@ -18,7 +18,7 @@
 #include <avr/interrupt.h>
 /****************************************************************************************/
 #include "common.h"
-#include "CFIFO.h"
+#include "fifo.h"
 #include "pin.h"
 #include "Cserial.h"
 #include "scheduler.h"
