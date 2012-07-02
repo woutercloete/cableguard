@@ -68,8 +68,8 @@ Csocket ipSocket(1, store.eeprom.activeConfig.serverConfig.port,
                  store.eeprom.activeConfig.serverConfig.ip, bufSize);
 Ctagtable tagTable(&rtc, store.eeprom.activeConfig.readerID, &cc1101, &store);
 Cpin pinSendSMSRange(ePORT_ATMEGA_128_B, 7, ePinOut, true);
-Cpin pinSendSMSMove(ePORT_ATMEGA_128_B, 8, ePinOut, true);
-Cpin pinSendSMSTamper(ePORT_ATMEGA_128_B, 8, ePinOut, true);
+Cpin pinSendSMSMove(ePORT_ATMEGA_128_E, 5, ePinOut, true);
+Cpin pinSendSMSTamper(ePORT_ATMEGA_128_E, 3, ePinOut, true);
 /****************************************************************************************/
 #endif /* MAIN_H_ */
 
