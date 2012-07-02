@@ -25,7 +25,6 @@ namespace TAG {
       u16 lifecnt;
       u08 movement;
       u08 tamper;
-      sAccel acel;
   } sRfTag;
   /****************************************************************************************/
   typedef struct {

@@ -14,13 +14,10 @@
 #include "storage.h"
 #include "scheduler.h"
 #include "cc1101.h"
-#include "CUART.h"
 /****************************************************************************************/
 #define DISPLAY_TIMEOUT 5
 /****************************************************************************************/
 extern sEvent02 event;
-extern CUART outUart;
-const u08 aDEBUG_UART_BUF_SIZE = 255;
 /****************************************************************************************/
 const u08 screenMaxCol = (LCD_MAX_COL);
 /****************************************************************************************/
@@ -190,10 +187,8 @@ class Ctagscreen: public Cscreen {
       u08 strEvent[16];
       memset(&screen, 32, sizeof(screen));
       snprintf((c08*) &screen.lines[0][0], screenMaxCol, "#%04X%04X %d",
-               (u16) (tag->serverTag.rfTag.tagID >> 16), (u16) tag->serverTag.rfTag.tagID,
-               tag->serverTag.rfTag.count);
-      snprintf((c08*) &screen.lines[1][0], screenMaxCol, "RSSI: %d %d %d", tag->rssiOut,
-               tag->movementNow, tag->tamper);
+               (u16) (tag->serverTag.rfTag.tagID >> 16), (u16) tag->serverTag.rfTag.tagID, tag->serverTag.rfTag.count);
+      snprintf((c08*) &screen.lines[1][0], screenMaxCol, "RSSI: %d %d %d", tag->rssiOut, tag->movementNow, tag->tamper);
       Cscreen::build();
     }
     /****************************************************************************************/
@@ -215,7 +210,6 @@ class Ctagscreen: public Cscreen {
     /****************************************************************************************/
     void build(void) {
       u08 strEvent[16];
-      c08 str[aDEBUG_UART_BUF_SIZE];
       switch (event.eventType) {
         case TAG::IN_RANGE:
           strcpy((c08*) strEvent, "IN");
@@ -229,18 +223,11 @@ class Ctagscreen: public Cscreen {
         case TAG::TAMPER:
           strcpy((c08*) strEvent, "TAMPER");
           break;
-        default:
-          strcpy((c08*) strEvent, "UNKNOWN");
-          break;
       }
       memset(&screen, 32, sizeof(screen));
-      snprintf(str, aDEBUG_UART_BUF_SIZE, "\r\n########   SMS         %04X%04X %s",
-               (u16) (event.tag.rfTag.tagID >> 16), (u16) event.tag.rfTag.tagID,
-               strEvent);
-      outUart.sendStr(str);
-      snprintf((c08*) &screen.lines[0][0], screenMaxCol, "#%04X%04X %s",
-               (u16) (event.tag.rfTag.tagID >> 16), (u16) event.tag.rfTag.tagID,
-               strEvent);
+      snprintf((c08*) &screen.lines[0][0], screenMaxCol, "TAG %s", strEvent);
+      snprintf((c08*) &screen.lines[1][0], screenMaxCol, "#%04X%04X",
+               (u16) (event.tag.rfTag.tagID >> 16), (u16) event.tag.rfTag.tagID);
       Cscreen::build();
     }
 };

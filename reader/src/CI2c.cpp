@@ -23,7 +23,7 @@
 // 100KHz for slow speed
 // 400KHz for high speed
 
-using namespace NCI2C;
+using namespace I2C;
 
 #undef I2C_DEBUG
 
