@@ -1,10 +1,10 @@
-#ifndef I2C_H
-#define I2C_H
+#ifndef CI2C_H
+#define CI2C_H
 
 #include "avrlibtypes.h"
 #include "avrlibdefs.h"
 
-namespace I2C {
+namespace NCI2C {
   // TWSR values (not bits)
   // (taken from avr-libc twi.h - thank you Marek Michalkiewicz)
   // Master

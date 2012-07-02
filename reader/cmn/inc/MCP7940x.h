@@ -6,7 +6,7 @@
 #include "CI2c.h"
 
 //using namespace IRTC;
-using namespace I2C;
+using namespace NCI2C;
 typedef struct _sRtcTime {
 	u16 year;
 	u08 mon;

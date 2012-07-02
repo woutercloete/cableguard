@@ -4,6 +4,7 @@
 #include "cc1101.h"
 #include "tag.h"
 /****************************************************************************************/
+namespace HANDLER_N {
 typedef enum {
 	SLEEP = 1, TRANSMIT = 2
 } eState;
@@ -18,6 +19,8 @@ class CHandler {
 	u08 test(void);
 public:
 	TAG::sRfTag tag;
+	u08 testDat[16];
+	u08 pktSize;
 	CHandler(CC1101* _cc1101, u32 _tagID, u08 _txinterval) {
 		tag.tagID = _tagID;
 		tag.lifecnt = 0;
@@ -33,6 +36,10 @@ public:
 		// PSU PIN
 		sbi(DDRD, 5);
 		// Test PIN
+		for (u08 c = 0; c < 16; c++) {
+			testDat[c] = c;
+		}
+		pktSize = 0;
 	}
 	;
 	void setTxInterval(u08 _txInterval) {
@@ -41,4 +48,7 @@ public:
 	void run(void);
 };
 /****************************************************************************************/
+}
+using namespace HANDLER_N;
+
 #endif

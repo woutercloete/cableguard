@@ -49,11 +49,10 @@ void configureNetwork();
 /****************************************************************************************/
 static sRtcTime date;
 sEvent02 event;
-const u08 DEBUG_UART_BUF_SIZE = 128;
-
+const u08 DEBUG_UART_BUF_SIZE = 255;
 /****************************************************************************************/
 Cmcu mcu;
-CUART outUart(1, 9600, DEBUG_UART_BUF_SIZE);
+CUART outUart(1, 38400, DEBUG_UART_BUF_SIZE, 8);
 Csignal rtcSignal;
 CI2C i2c;
 Crtc rtc(&i2c, 0x6F);

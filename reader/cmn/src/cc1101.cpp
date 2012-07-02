@@ -133,6 +133,7 @@ void CC1101::ReceivePacket(void) {
   u08 rxbytes;
   u08 pcktStatus;
   sRadioPacket packet;
+  u08 testBuf[16];
 
   isrCnt++;
   pcktStatus = readStatusReg(CC1101_PKTSTATUS);
@@ -149,19 +150,32 @@ void CC1101::ReceivePacket(void) {
       tagreceived = false;
       goto exit;
     }
-    readBurstReg((u08*) &packet.tag, CC1101_RXFIFO, sizeof(TAG::sRfTag));
-    wait_GDO0_low(); //Packet received in full
+    readBurstReg(testBuf, CC1101_RXFIFO, len);
+    pcktCrc = testBuf[len-2];
+    pcktCrc = (pcktCrc << 8) + testBuf[len-1];
+    crc = crc16(testBuf, len - 2, 0xCC);
+    if (len != 0xb){
+      len++;
+      len--;
+    }
+    //readBurstReg((u08*) &packet.tag, CC1101_RXFIFO, sizeof(TAG::sRfTag));
+    //wait_GDO0_low(); //Packet received in full
 
-    pcktCrc = readConfigReg(CC1101_RXFIFO);
-    pcktCrc = (pcktCrc << 8) + readConfigReg(CC1101_RXFIFO);
-    crc = crc16((u08*) &packet.tag, len - 2, 0xCC);
+//    pcktCrc = readConfigReg(CC1101_RXFIFO);
+//    pcktCrc = (pcktCrc << 8) + readConfigReg(CC1101_RXFIFO);
+//    crc = crc16((u08*) &packet.tag, len - 2, 0xCC);
     if (crc == pcktCrc) {
+      memcpy(&packet.tag, testBuf,sizeof(packet.tag));
       packet.rssi = convDB(readConfigReg(CC1101_RXFIFO));
       packet.lqi = readConfigReg(CC1101_RXFIFO);
       packet.crc_ok = (readStatusReg(CC1101_PKTSTATUS) & _BV(7));
       tagreceived = true;
       rxFifo.add(&packet, 1);
       rxCnt++;
+      if (packet.tag.tagID == 0x00110001){
+        rxCnt--;
+        rxCnt++;
+      }
     } else {
       cmdStrobe(CC1101_SFRX); // Flush RX FIFO
     }

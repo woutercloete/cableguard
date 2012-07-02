@@ -14,7 +14,6 @@
 #define DDR_GD0   DDRB
 #define PIN_GD0   6
 
-
 #undef CC1101_INTERRUPT_DRIVEN
 #undef FIFOS_ENABLED
 #define RFID_TAG
@@ -155,7 +154,6 @@
 #define CC1101_RXBYTES           0x3B        // Overflow and Number of Bytes
 #define CC1101_RCCTRL1_STATUS    0x3C        // Last RC Oscillator Calibration Result
 #define CC1101_RCCTRL0_STATUS    0x3D        // Last RC Oscillator Calibration Result 
-
 /*****************************************************************************
  * MARC STATUS
  *****************************************************************************/
@@ -191,19 +189,19 @@
  *  high when a receive OR a transmit begins.  It goes high once the
  *  sync word is received or transmitted and then goes low again once
  *  the packet completes.
-*****************************************************************************/
+ *****************************************************************************/
 #if(defined(RFID_READER))
-  #define enableIRQ_GDO0()        (EIMSK |=  (1<<INT7))
-  #define disableIRQ_GDO0()       (EIMSK &= ~(1<<INT7))
-  #define clearIRQ_GDO0()         (INTFR  &= ~(1<<INT7));
+#define enableIRQ_GDO0()        (EIMSK |=  (1<<INT7))
+#define disableIRQ_GDO0()       (EIMSK &= ~(1<<INT7))
+#define clearIRQ_GDO0()         (INTFR  &= ~(1<<INT7));
 #elif ((defined(RFID_TAG)))
-  #define enableIRQ_GDO0()        (PCICR |=  (1<<PCIE0)); PCMSK0 |= (1 << PCINT6);   cbi(DDR_GD0,PIN_GD0);
-  #define disableIRQ_GDO0()       (PCICR &= ~(1<<PCIE0)); PCMSK0 &= ~(1 << PCINT6);  cbi(DDR_GD0,PIN_GD0);
-  #define clearIRQ_GDO0()         (PCIFR &= ~(1<<PCIE0));
+#define enableIRQ_GDO0()        (PCICR |=  (1<<PCIE0)); PCMSK0 |= (1 << PCINT6);   cbi(DDR_GD0,PIN_GD0);
+#define disableIRQ_GDO0()       (PCICR &= ~(1<<PCIE0)); PCMSK0 &= ~(1 << PCINT6);  cbi(DDR_GD0,PIN_GD0);
+#define clearIRQ_GDO0()         (PCIFR &= ~(1<<PCIE0));
 #endif
 
 /**
-    name GDOx configuration constants
+ name GDOx configuration constants
  */
 #define CC1100_GDOx_RX_FIFO           0x00  /* assert above threshold, deassert when below         */
 #define CC1100_GDOx_RX_FIFO_EOP       0x01  /* assert above threshold or EOP, deassert when empty  */
@@ -212,16 +210,15 @@
 #define CC1100_GDOx_RX_OVER           0x04  /* asserts when RX overflow, deassert when flushed     */
 #define CC1100_GDOx_TX_UNDER          0x05  /* asserts when RX underflow, deassert when flushed    */
 #define CC1100_GDOx_SYNC_WORD         0x06  /* assert SYNC sent/recv, deasserts on EOP             */
-                                            /* In RX, de-assert on overflow or bad address         */
-                                            /* In TX, de-assert on underflow                       */
+/* In RX, de-assert on overflow or bad address         */
+/* In TX, de-assert on underflow                       */
 #define CC1100_GDOx_RX_OK             0x07  /* assert when RX PKT with CRC ok, de-assert on 1byte  */
-                                            /* read from RX Fifo                                   */
+/* read from RX Fifo                                   */
 #define CC1100_GDOx_PREAMB_OK         0x08  /* assert when preamble quality reached : PQI/PQT ok   */
 #define CC1100_GDOx_CCA               0x09  /* Clear channel assessment. High when RSSI level is   */
-                                            /* below threshold (dependent on the current CCA_MODE) */
+/* below threshold (dependent on the current CCA_MODE) */
 #define CC1100_GDO_PA_PD                27  /* low when transmit is active, low during sleep */
 #define CC1100_GDO_LNA_PD               28  /* low when receive is active, low during sleep */
-
 
 /****************************************************************************************/
 #define BIT_GDO0 2
@@ -229,85 +226,88 @@
 #define CS()                      cbi(PORTB, SPI_SS)
 #define nCS()                     sbi(PORTB, SPI_SS)
 #define MISO_WAIT()               LOOP_UNTIL_BIT_IS_LO(PINB,SPI_MISO); // Wait until SPI MISO line goes low
-
 #define wait_GDO0_high()          LOOP_UNTIL_BIT_IS_HI(READ_GD0,PIN_GD0);// Wait until GDO0 line goes high
 #define wait_GDO0_low()           LOOP_UNTIL_BIT_IS_LO(READ_GD0,PIN_GD0);// Wait until GDO0 line goes low
-
 /*****************************************************************************/
 typedef enum {
-  eCC1100_TX_TYPE_FORCED = 1, eCC1100_TX_TYPE_CCA
+	eCC1100_TX_TYPE_FORCED = 1, eCC1100_TX_TYPE_CCA
 } etxType;
-
-
 /*****************************************************************************/
-typedef struct  {
-    u08 size;
-    TAG::sRfTag tag;
-    u08 rssi;
-    u08 lqi;
-    bool crc_ok;
+typedef struct {
+	u08 size;
+	TAG::sRfTag tag;
+	u08 rssi;
+	u08 lqi;
+	bool crc_ok;
 } sRadioPacket;
 
+namespace CC1101_N {
+typedef struct {
+	u08 size;
+	u16 crc;
+	TAG::sRfTag tag;
+} sPacket;
+}
 /*****************************************************************************
  * Class: CC1101
  *****************************************************************************/
 class CC1101 {
-  private:
-    SPI spi; //TODO hook in our own SPI class
-    void readBurstReg(u08 * buffer, u08 regAddr, u08 len);
-    void setupRegs(void);
-    void setRegsFromEeprom(void);
-    void setSyncWord(u08* sync);
-    void setDevAddress(u08 addr);
-    void setChannel(u08 chnl);
-    void FlushRX(void);
-    void FlushTX(void);
-    u08 RxFifoEmpty(void);
-    void goIdle(void);
-  public:
-    bool tagreceived;
-    void rssiValidWait(void);
-    u08 readReg(u08 regAddr, u08 regType);
-    void writeReg(u08 regAddr, u08 value);
-    u08 cmdStrobe(u08 cmd);
-    void writeBurstReg(u08 regAddr, u08* buffer, u08 len);
+private:
+	SPI spi; //TODO hook in our own SPI class
+	void readBurstReg(u08 * buffer, u08 regAddr, u08 len);
+	void setupRegs(void);
+	void setRegsFromEeprom(void);
+	void setSyncWord(u08* sync);
+	void setDevAddress(u08 addr);
+	void setChannel(u08 chnl);
+	void FlushRX(void);
+	void FlushTX(void);
+	u08 RxFifoEmpty(void);
+	void goIdle(void);
+public:
+	bool tagreceived;
+	void rssiValidWait(void);
+	u08 readReg(u08 regAddr, u08 regType);
+	void writeReg(u08 regAddr, u08 value);
+	u08 cmdStrobe(u08 cmd);
+	void writeBurstReg(u08 regAddr, u08* buffer, u08 len);
 #if(defined(FIFOS_ENABLED))
-    Tfifo<sRadioPacket> rxFifo;
-    Tfifo<sRadioPacket> txFifo;
+	Tfifo<sRadioPacket> rxFifo;
+	Tfifo<sRadioPacket> txFifo;
 #else
-    sRadioPacket radioPckt;
+	sRadioPacket radioPckt;
 #endif
-    u08 channel;
-    u08 syncWord[2];
-    u08 devAddress;
-    u08 rssi;
-    u08 lqi;
-    u08 crc_ok;
-    u08 volatile gd0;
-    CC1101(u08 addr, u08 chnl) {
-      init();
-      writeReg(CC1101_SYNC1, CC1101_DEFVAL_SYNC1);
-      writeReg(CC1101_SYNC0, CC1101_DEFVAL_SYNC0);
-      setDevAddress(addr);
-      setChannel(chnl);
-      gd0 = 1;
-      tagreceived = 0;
+	u08 channel;
+	u08 syncWord[2];
+	u08 devAddress;
+	u08 rssi;
+	u08 lqi;
+	u08 crc_ok;
+	u08 volatile gd0;
+	CC1101(u08 addr, u08 chnl) {
+		init();
+		writeReg(CC1101_SYNC1, CC1101_DEFVAL_SYNC1);
+		writeReg(CC1101_SYNC0, CC1101_DEFVAL_SYNC0);
+		setDevAddress(addr);
+		setChannel(chnl);
+		gd0 = 1;
+		tagreceived = 0;
 #if(defined(FIFOS_ENABLED))
-      rxFifo.setBufSize(1);
-      txFifo.setBufSize(1);
+		rxFifo.setBufSize(1);
+		txFifo.setBufSize(1);
 #endif
-    }
+	}
 
-    void wait_PKTSTATUS(u08 mode);
-    void wait_MARCSTATE(u08 mode);
-    void transmit(u08 *data, u08 len, etxType txType);
-    bool sendData1(u08 *data, u08 len);
-    void init(void);
-    void wakeUp(void);
-    void reset(void);
-    void powerdown();
-    void receive(void);
-    void ReceivePacket();
+	void wait_PKTSTATUS(u08 mode);
+	void wait_MARCSTATE(u08 mode);
+	void transmit(u08 *data, u08 len, etxType txType);
+	bool sendData1(u08 *data, u08 len);
+	void init(void);
+	void wakeUp(void);
+	void reset(void);
+	void powerdown();
+	void receive(void);
+	void ReceivePacket();
 };
 #endif
 

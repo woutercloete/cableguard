@@ -11,6 +11,7 @@ extern "C" {
 #include "socket.h"
 #include "dhcp.h"
 }
+
 /****************************************************************************************/
 #include "main.h"
 #include "crc.h"
@@ -58,7 +59,6 @@ void checkTags() {
     tagscreen.build(&tags[0]);
     tagscreen.display();
   }
-
   // Send SMS
   if (!tagTable.events.empty()) {
     tagTable.events.remove(&event, 1);
