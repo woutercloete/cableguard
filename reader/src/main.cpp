@@ -11,7 +11,6 @@ extern "C" {
 #include "socket.h"
 #include "dhcp.h"
 }
-
 /****************************************************************************************/
 #include "main.h"
 #include "crc.h"
