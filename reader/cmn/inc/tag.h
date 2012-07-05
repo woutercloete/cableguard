@@ -17,7 +17,7 @@
 /****************************************************************************************/
 using namespace FIR;
 /****************************************************************************************/
-const u08 tickThreshold = 4;
+const u08 tickThreshold = 20;
 const u08 rssiMargin = 5;
 /****************************************************************************************/
 namespace TAG {
@@ -26,6 +26,7 @@ namespace TAG {
       u08 count;
       u16 lifecnt;
       u08 movement;
+      u08 tamper;
   } sRfTag;
   /****************************************************************************************/
   typedef struct {
@@ -39,7 +40,7 @@ namespace TAG {
   } eState;
   /****************************************************************************************/
   typedef enum {
-    IN_RANGE = 0x1, OUT_RANGE = 0x2, MOVEMENT_CHANGED = 0x3
+    IN_RANGE = 0x1, OUT_RANGE = 0x2, MOVEMENT_CHANGED = 0x3, TAMPER = 0x4
   } eEvent;
 /****************************************************************************************/
 }
@@ -47,18 +48,20 @@ namespace TAG {
 class Ctag {
     friend class Ctagtable;
   private:
-    TAG::sServerTag02 serverTag;
     u08 cntTick;
     TAG::eState state;
     Cfir rssiFilter;
     u08 rssiIn;
-    u08 movementNow;
     u08 movementPrev;
     u08 movementPrevPrev;
     bool movingNow;
     bool movingPrev;
     bool stoppedMoving;
   public:
+    bool tamper;
+    u08 tamperCnt;
+    u08 movementNow;
+    TAG::sServerTag02 serverTag;
     u16 rssiThreshold;
     u08 rssiOut;
     //bool movementChanged;
@@ -90,12 +93,12 @@ class Ctag {
       serverTag.rfTag.tagID = _serverTag->rfTag.tagID;
       this->rssiIn = _serverTag->rssi;
     }
-    bool startedMoving(){
+    bool startedMoving() {
       bool ret = (movingNow && !movingPrev);
       movingPrev = movingNow;
       return (ret);
     }
-    bool sopedMoving(){
+    bool sopedMoving() {
       bool ret = (!movingNow && movingPrev);
       movingPrev = movingNow;
       return (ret);
@@ -105,6 +108,8 @@ class Ctag {
       this->rssiThreshold = _rssiThreshold;
     }
     void setNew(TAG::sServerTag02* _serverTag, u16 _rssiThreshold) {
+      tamper = 0;
+      tamperCnt = 0;
       cntTick = 0;
       this->rssiThreshold = _rssiThreshold;
       serverTag.rssi = _serverTag->rssi;

@@ -51,7 +51,7 @@ static sRtcTime date;
 sEvent02 event;
 /****************************************************************************************/
 Cmcu mcu;
-//CUART outUart(1, 2400, 64);
+CUART outUart(1, 38400, 254);
 Csignal rtcSignal;
 CI2C i2c;
 Crtc rtc(&i2c, 0x6F);
@@ -66,10 +66,10 @@ Cwelcomescreen welcome(&display, &store, &date);
 Ctagscreen tagscreen(&display, &store, &date);
 Csocket ipSocket(1, store.eeprom.activeConfig.serverConfig.port,
                  store.eeprom.activeConfig.serverConfig.ip, bufSize);
-//CNetwork ipNetwork(&ipSocket, bufSize);
-//Cserver server(&ipNetwork, &store);
 Ctagtable tagTable(&rtc, store.eeprom.activeConfig.readerID, &cc1101, &store);
-//CNetwork network(&outUart, 32, 0x1);
-Cpin pinSendSMS(ePORT_ATMEGA_128_B, 7, ePinOut, true);
+Cpin pinSendSMSRange(ePORT_ATMEGA_128_B, 7, ePinOut, true);
+Cpin pinSendSMSMove(ePORT_ATMEGA_128_E, 5, ePinOut, true);
+Cpin pinSendSMSTamper(ePORT_ATMEGA_128_E, 3, ePinOut, true);
 /****************************************************************************************/
 #endif /* MAIN_H_ */
+

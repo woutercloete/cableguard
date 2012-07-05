@@ -40,10 +40,8 @@ Csocket::Csocket(u32 socketNr, u16 port, sIP dstIP, u16 bufSize = 0) {
   healthy = true;
   this->bufSize = bufSize;
   if (bufSize > 0) {
-    if (!rxFIFO.setBufSize(bufSize))
-      healthy = false;
-    if (!txFIFO.setBufSize(bufSize))
-      healthy = false;
+    rxFIFO.setBufSize(bufSize);
+    txFIFO.setBufSize(bufSize);
     buf = (u08*) malloc(bufSize);
     if (buf == 0)
       healthy = false;

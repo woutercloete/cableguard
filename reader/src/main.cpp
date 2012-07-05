@@ -27,24 +27,18 @@ u08 emu = 1;
 int main(void) {
   init();
   scheduler.attach(&rtcSignal);
-  pinSendSMS.setHigh();
+  pinSendSMSRange.setHigh();
+  pinSendSMSMove.setHigh();
+  pinSendSMSTamper.setHigh();
   sei();
   pscreen = &welcome;
-  //welcome.build();
-  //welcome.display(1000);
+  welcome.build();
+  welcome.display(1000);
   scheduler.attach(&screen.signal);
   scheduler.start();
-//  configureNetwork();
-//  configureReader();
-
   cc1101.enable();
-  //wdt_enable(WDTO_2S);
   while (1) {
-//    wdt_reset();
-//    checkAutoconnect();
     checkTags();
-//    checkDate();
-//    pscreen->service();
   }
 }
 /****************************************************************************************/
@@ -60,24 +54,30 @@ void checkTags() {
   // If a new packet came in add it to the tag list.
   if (!cc1101.rxFifo.empty()) {
     cc1101.rxFifo.remove(&pkt, 1);
-    //network.tx(1, 0x11, (u08*) &pkt, sizeof(pkt));
-//    outUart.send((c08*)&pkt,sizeof(pkt));
     tagTable.add(&pkt);
-    //tagscreen.build(&pkt, tags[0].rssiOut, tags[0].rssiThreshold);
-    //tagscreen.display();
   }
-  // Post new events to server
-  if (tagTable.events.empty()) {
-    pinSendSMS.setHigh();
-  } else {
+  // Send SMS
+  if (!tagTable.events.empty()) {
     tagTable.events.remove(&event, 1);
-    if (event.eventType == OUT_RANGE || event.eventType == MOVEMENT_CHANGED) {
-      pinSendSMS.setLow();
-      _delay_ms(600);
+    if (event.eventType == OUT_RANGE) {
+      pinSendSMSRange.setLow();
+      tagscreen.build();
+      tagscreen.display();
+      _delay_ms(1000);
+      pinSendSMSRange.setHigh();
+    } else if (event.eventType == MOVEMENT_CHANGED) {
+      pinSendSMSMove.setLow();
+      tagscreen.build();
+      tagscreen.display();
+      _delay_ms(1000);
+      pinSendSMSMove.setHigh();
+    } else if (event.eventType == TAMPER) {
+      pinSendSMSTamper.setLow();
+      tagscreen.build();
+      tagscreen.display();
+      _delay_ms(1000);
+      pinSendSMSTamper.setHigh();
     }
-    //server.setEvent(event);
-    tagscreen.build();
-    tagscreen.display();
   }
 }
 ///****************************************************************************************/

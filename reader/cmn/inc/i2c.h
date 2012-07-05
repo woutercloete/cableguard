@@ -18,7 +18,7 @@
 #include "avrlibtypes.h"
 #include "avrlibdefs.h"
 #include "pin.h"
-#include "Tfifo.h"
+#include "fifo.h"
 //****************************************************************************************
 // Master
 const u08 TW_START = 0x08;

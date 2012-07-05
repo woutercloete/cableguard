@@ -13,7 +13,7 @@
 #define TAGTABLE_H
 /****************************************************************************************/
 #include "tag.h"
-#include "Tfifo.h"
+#include "fifo.h"
 #include "payload.h"
 #include "MCP7940x.h"
 #include "scheduler.h"
@@ -23,7 +23,7 @@
 namespace TAG_TABLE {
   const u08 MAX_NUM_TAGS = 8;
   const u08 MAX_NUM_EVENTS = 8;
-  const u16 SERVICE_PERIOD = 1; // Service period in seconds
+  const u16 SERVICE_PERIOD = 2; // Service period in seconds
   const u16 SERVICE_TICKS = SERVICE_PERIOD / TICK_BASE;
   const u16 OUT_RANGE_TIMEOUT = 10; // Seconds before tag is considered out of rssiThreshold
   const u16 OUT_RANGE_TICKS = OUT_RANGE_TIMEOUT/SERVICE_PERIOD;

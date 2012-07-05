@@ -6,7 +6,7 @@
 #include "common.h"
 
 #include "rfstudio.h"
-#include "Tfifo.h"
+#include "fifo.h"
 #include "tag.h"
 
 extern "C" {
